@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#./param_visualization_n_dim_par2 -mN 10 -MN 10 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 300 -r 0.1 -PCRl 0.3,2,0,1 -f -c 
+
+
 # Check if CUDA source file is provided as argument
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <CUDA_SOURCE_FILE>"
