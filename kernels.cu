@@ -38,13 +38,11 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     }
 
     if(feasible[x] = is_feasible){
-
+        /*//FACCIAMO PRIMA Q * x
         double Qx[N];
         for(int i = 0; i < N; i++){
             Qx[i] = 0;
         }
-
-        //FACCIAMO PRIMA Q * x
         for(int i = 0; i < N; i++){
             for(int j = 0; j < N; j++){
                 Qx[i] += Q[i*N + j] * x_bin[j];
@@ -54,9 +52,16 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
         //FACCIAMO  x^T * Qx
         for(int i = 0; i < N; i++){
             fx_vals[x] += x_bin[i] * Qx[i];
+        }*/
+
+        //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
+        fx_Type fx = 0;
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                fx += x_bin[i] * Q[i*N + j] * x_bin[j];
+            }
         }
     }
-    
 }
 
 
