@@ -20,7 +20,6 @@
 #define add 1
 #define sub 0
 
-
 #define CHECK(call)                                                                         \
 	{                                                                                       \
 		const cudaError_t err = call;                                                       \
@@ -37,7 +36,7 @@
 			printf("%s in %s at line %d\n", cudaGetErrorString(err), __FILE__, __LINE__);   \
 			exit(EXIT_FAILURE);                                                             \
 		}                                                                                   \
-	}
+	} 
 
 double MAX_MU = DBL_MAX;
 double MAX_LAMBDA = DBL_MAX;
@@ -1281,10 +1280,6 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
 
         fill_lamnda(lambda, M, initial_lambda, 0);
 
-        //NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
-        
-
-
         double* A_lin_per_col = new double[M * N];
         for(int j = 0; j < N; j++){
             for(int i = 0; i < M; i++){
@@ -1338,19 +1333,11 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
 
         reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
 
-
-            
-        /*if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
+        /*//NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
+        if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
             iter--;
             continue;
         }*/
-
-
-
-
-
-
-
 
         int i = 0;
         bool ok;
