@@ -62,6 +62,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
             }
         }
     }
+    fx_vals[x] = fx;
 }
 
 
