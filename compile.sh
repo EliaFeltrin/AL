@@ -7,24 +7,44 @@ if [ $# -eq 0 ]; then
 fi
 
 # Compiler
-NVCC=nvcc
-
+COMPILER=nvcc
 # Flags for nvcc
-NVCCFLAGS="-arch=sm_61"
+COMPILER_FLAGS="-arch=sm_61 -o exe"
 
-# nvprof command
-NVPROF=nvprof
+
+# Profiler
+PROFILER=nvprof
+
+# Requested command
+COMMAND=$1
 
 # CUDA source file
-CUDA_FILE=$1
+CUDA_FILE=$2
 
-# Target executable name (first letter of the CUDA file)
-EXEC=$(basename $CUDA_FILE | cut -c1)
 
-echo "Compiling CUDA program $CUDA_FILE"
-# Compile CUDA program
-$NVCC $NVCCFLAGS -o $EXEC $CUDA_FILE
+# Check if we used the keyword all, compile or profile
+if [ $COMMAND == "all" ]; then
+    # Compile and profile
+    echo "Compiling and executing CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    ./exe
+    exit 0
+elif [ $COMMAND == "compile" ]; then
+    # Compile only
+    echo "Compiling CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    exit 0
+elif [ $COMMAND == "profile" ]; then
+    # Profile only
+    echo "Compiling and profiling CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    $PROFILER ./exe
+    exit 0
+else
+    echo "Usage: $0 <all|compile|profile> <CUDA_SOURCE_FILE>"
+    exit 1
+fi
 
-echo "Running CUDA program $EXEC"
-# Run nvprof
-$NVPROF ./$EXEC
+
+
+

@@ -21,22 +21,22 @@
 #define sub 0
 
 
-#define CHECK(call)                                                                 \
-	{                                                                                 \
-		const cudaError_t err = call;                                                   \
-		if (err != cudaSuccess) {                                                       \
-			printf("%s in %s at line %d\n", cudaGetErrorString(err), __FILE__, __LINE__); \
-			exit(EXIT_FAILURE);                                                           \
-		}                                                                               \
+#define CHECK(call)                                                                         \
+	{                                                                                       \
+		const cudaError_t err = call;                                                       \
+		if (err != cudaSuccess) {                                                           \
+			printf("%s in %s at line %d\n", cudaGetErrorString(err), __FILE__, __LINE__);   \
+			exit(EXIT_FAILURE);                                                             \
+		}                                                                                   \
 	}
 
-#define CHECK_KERNELCALL()                                                          \
-	{                                                                                 \
-		const cudaError_t err = cudaGetLastError();                                     \
-		if (err != cudaSuccess) {                                                       \
-			printf("%s in %s at line %d\n", cudaGetErrorString(err), __FILE__, __LINE__); \
-			exit(EXIT_FAILURE);                                                           \
-		}                                                                               \
+#define CHECK_KERNELCALL()                                                                  \
+	{                                                                                       \
+		const cudaError_t err = cudaGetLastError();                                         \
+		if (err != cudaSuccess) {                                                           \
+			printf("%s in %s at line %d\n", cudaGetErrorString(err), __FILE__, __LINE__);   \
+			exit(EXIT_FAILURE);                                                             \
+		}                                                                                   \
 	}
 
 double MAX_MU = DBL_MAX;
@@ -1285,12 +1285,6 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
         
 
 
-
-
-
-
-
-
         double* A_lin_per_col = new double[M * N];
         for(int j = 0; j < N; j++){
             for(int i = 0; i < M; i++){
@@ -1318,12 +1312,16 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
         b_Type*       b_gpu;
         bool*         feasible_gpu;
         fx_Type*      fx_gpu; 
+        int*          x_min_gpu;
+        double*       fx_min_gpu;
 
         CHECK(cudaMalloc(&A_gpu, M * N * sizeof(A_Type)));
         CHECK(cudaMalloc(&Q_gpu, N * N * sizeof(Q_Type)));
         CHECK(cudaMalloc(&b_gpu, M * sizeof(b_Type)));
         CHECK(cudaMalloc(&feasible_gpu, pow(2,N) * sizeof(bool)));
         CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
+        CHECK(cudaMalloc(&x_min_gpu, sizeof(int)));
+        CHECK(cudaMalloc(&fx_min_gpu, sizeof(double)));
 
         CHECK(cudaMemcpy(A_gpu, A_lin_per_col, M * N * sizeof(A_Type), cudaMemcpyHostToDevice));
         CHECK(cudaMemcpy(Q_gpu, Q_lin_per_righe, N * N * sizeof(Q_Type), cudaMemcpyHostToDevice));
@@ -1336,6 +1334,9 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
         brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, feasible_gpu, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
+
+
+        reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
 
 
             
