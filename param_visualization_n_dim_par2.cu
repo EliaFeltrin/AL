@@ -174,8 +174,7 @@ void find_x_min_AL_brute_force(double** Q, int dim, double** A, int rA, double**
 double calculate_xQx(double** Q, double** x, int dim);
 
 //function to test the algorithm at a certain dimension
-int test_at_dimension(int N,  
-    int M, 
+int test_at_dimension(
     int MAXITER, 
     int N_AL_ATTEMPTS, 
     double initial_mu, 
@@ -201,15 +200,15 @@ void finalize(std::vector<test_results> results);
 void finalize(test_results mean_results);
 
 //al terimination condition: parameters: i, N_AL_ATTEMPTS, lambda, mu, c
-bool max_Al_attempts_condition(int i, int N_AL_ATTEMPTS, int N, int M, double** lambda, double mu, double** c){
+bool max_Al_attempts_condition(int i, int N_AL_ATTEMPTS, double** lambda, double mu, double** c){
     return i < N_AL_ATTEMPTS;
 }
 
-bool max_mu_condition(int i, int MAXITER, int N, int M, double** lambda, double mu, double** c){
+bool max_mu_condition(int i, int MAXITER, double** lambda, double mu, double** c){
     return mu < MAX_MU;
 }
 
-bool max_lambda_condition(int i, int MAXITER, int N, int M, double** lambda, double mu, double** c){
+bool max_lambda_condition(int i, int MAXITER, double** lambda, double mu, double** c){
     for(int i = 0; i < M; i++){
         if(lambda[i][0] >= MAX_LAMBDA){
             return false;
@@ -233,10 +232,6 @@ int main(int argc, char** argv) {
     //printf("check 0\n");
 
     //default values
-    int MIN_N = 1;
-    int MAX_N = 20;
-    int MIN_M = 1;
-    int MAX_M = 20;
     int MAXITER = 1000;
     int N_AL_ATTEMPTS = 1000;
     double initial_mu = 0.1;
@@ -261,11 +256,11 @@ int main(int argc, char** argv) {
     bool selected_stop_conditions[3] = {false, false, false};
     bool(*stop_conditions[3])(int, int, int, int, double**, double, double**) = {max_Al_attempts_condition, &max_mu_condition, &max_lambda_condition};
    
-    auto end_condition_mix = [&selected_stop_conditions, &stop_conditions](int i, int MAXITER, int N, int M, double** lambda, double mu, double** c) -> bool{
+    auto end_condition_mix = [&selected_stop_conditions, &stop_conditions](int i, int MAXITER, double** lambda, double mu, double** c) -> bool{
         bool return_val = true;
         for(int j = 0; j < stop_conditions_end; j++){
             if(selected_stop_conditions[j]){
-                return_val = return_val && stop_conditions[j](i, MAXITER, N, M, lambda, mu, c);
+                return_val = return_val && stop_conditions[j](i, MAXITER, lambda, mu, c);
             }
         }
         return return_val;
@@ -283,26 +278,22 @@ int main(int argc, char** argv) {
     while ((opt = getopt(argc, argv, "lm:M:N:u:l:i:a:r:n:F:o:P:C:R:b:e::vsdfch::")) != -1) {
         switch (opt) {
             case 'm':
-                if(optarg[0] == 'N') MIN_N = atoi(optarg+2);
-                else if(optarg[0] == 'M') MIN_M = atoi(optarg+2);
-                else if(optarg[0] == 'u') initial_mu = atof(optarg+2); //>= 1 ? atof(optarg+2) : printf("WARNING: mu must be >= 1. Default value will be used.\n");
+                if(optarg[0] == 'u') initial_mu = atof(optarg+2); //>= 1 ? atof(optarg+2) : printf("WARNING: mu must be >= 1. Default value will be used.\n");
                 else if(optarg[0] == 'l') initial_lambda = atof(optarg+2);
                 else if(optarg[0] == 'Q') PARAM_1_Q = atof(optarg+2);
                 else if(optarg[0] == 'A') PARAM_1_A = atof(optarg+2);
                 else if(optarg[0] == 'b') PARAM_1_b = atof(optarg+2); 
                 break;
             case 'M':
-                if(optarg[0] == 'N') MAX_N = atoi(optarg+2);
-                else if(optarg[0] == 'M' && optarg[1] == 'F') {
+                if(optarg[0] == 'M' && optarg[1] == 'F') {
                     PARAM_1_A = atof(optarg+3);
                     PARAM_2_A = 1;
                     fill_Q = fill_Q_MMF;
                     fill_A = fill_A_MMF;
                     fill_b = fill_b_MMF;
                     selected_fill_distributions[Q] = selected_fill_distributions[A] = selected_fill_distributions[b] = MMF;
-                    Q_DIAG = true;
-                    
-                } else if(optarg[0] == 'M') MAX_M = atoi(optarg+2);
+                    Q_DIAG = true;   
+                }
                 else if(optarg[0] == 'u'){
                     MAX_MU = atof(optarg+2);
                     stop_condition_counter++;
@@ -441,17 +432,14 @@ int main(int argc, char** argv) {
                 fill_b = fill_b_manual;
                 break;
             default:
-                printf("Usage: %s [-mN MIN_N] [-MN MAX_N] [-mM MIN_M] [-MM MAX_M] [-mu MIN_MU[ [-Mu MAX_MU] [-ml MIN_LAMBDA] [-Ml MAX_LAMBDA] [-mQ PARAM_1_Q] [-MQ PARAM_2_Q] [-mA PARAM_1_A] [-MA PARAM_2_A] [-mb PARAM_1_b] [-Mb PARAM_2_b] [-r RHO] [-i MAXITER] [-a N_AL_ATTEMPTS] [-v](VERBOSE) [-s](STRONG_VERBOSE) [-f](ONLY_FINAL_REPORT) \n", argv[0]);
+                printf("Usage: %s [-mu MIN_MU[ [-Mu MAX_MU] [-ml MIN_LAMBDA] [-Ml MAX_LAMBDA] [-mQ PARAM_1_Q] [-MQ PARAM_2_Q] [-mA PARAM_1_A] [-MA PARAM_2_A] [-mb PARAM_1_b] [-Mb PARAM_2_b] [-r RHO] [-i MAXITER] [-a N_AL_ATTEMPTS] [-v](VERBOSE) [-s](STRONG_VERBOSE) [-f](ONLY_FINAL_REPORT) \n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
 
-    MAX_N = MAX_N < MIN_N ? MIN_N : MAX_N;
-    MAX_M = MAX_M < MIN_M ? MIN_M : MAX_M;
-
-    if(PCR_PROBLEM && MIN_N < -PARAM_1_b){
-        printf("\nWARNING: in PCR problem, N must be >= b, otherwise problems cannot be solved.\nMIN_N will be set accordingly\n\n");
-        MIN_N = -PARAM_1_b;
+    if(PCR_PROBLEM && N < -PARAM_1_b){
+        printf("\nWARNING: in PCR problem, N must be >= b, otherwise problems cannot be solved.\nN will be set accordingly\n\n");
+        exit(0)
     }
 
     if(update_mu == update_mu_exp && rho <= 1){
@@ -478,8 +466,8 @@ int main(int argc, char** argv) {
 
     FILE* file = fopen(filename.str().c_str(), "w");
     print_file_stdout(file, "Test parameters:\n");
-    print_file_stdout(file, "%d <= N <= %d\n", MIN_N, MAX_N);
-    print_file_stdout(file, "%d <= M <= %d\n", MIN_M, MAX_M);
+    print_file_stdout(file, "N = %d\n", N);
+    print_file_stdout(file, "M = %d\n", M);
     print_file_stdout(file, "# problems for each combination of N and M = %d\n", MAXITER);
     print_file_stdout(file, "Initial mu = %.1f\n", initial_mu);
     print_file_stdout(file, "rho = %.1f\n", rho);
@@ -537,108 +525,19 @@ int main(int argc, char** argv) {
     }
 
 
-    
-    int max_n = (MAX_N >= MIN_N ? MAX_N : MIN_N);
-    int max_m = (MAX_M >= MIN_M ? MAX_M : MIN_M);
-
     //initialize vector of results to the size of the number of tests
-    std::vector<test_results> results = std::vector<test_results>((max_n - MIN_N + 1) * (max_m - MIN_M + 1));
+    test_results results;
     bool terminate = false;
 
-    //#pragma omp parallel for sharefd(terminate)
-    for(int n = MIN_N; n <= max_n; n++){
-        //if(terminate) continue;
-        #pragma omp parallel for shared(terminate)
-        for(int m = MIN_M; m <= max_m; m++){
-            if(terminate) continue;
 
-            test_results current_results;
-
-            if( 0 == test_at_dimension(n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, PARAM_2_A, fill_b, PARAM_1_b, PARAM_2_b, al_end_condition, update_mu, &current_results,  verbose, strong_verbose)){
-                printf("Some error occured\n");
-                finalize(results);
-                terminate = true;
-            }
-            if(!only_final_report){
-                printf("\nN = %d\t M = %d\n", current_results.N, current_results.M);
-                printf("\tcorrect ratio = %.1f%%    unfinished ratio = %.1f%%    wrong ratio = %.1f%%    normalized mean error = %.1f%%\n", current_results.correct_ratio*100, current_results.unfinished_ratio*100, (1 - current_results.correct_ratio - current_results.unfinished_ratio)*100, current_results.normalized_error_mean*100);
-                if(current_results.correct_ratio > 0){
-                    printf("\ton correct solutions:\n");
-                    printf("\t\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", current_results.mean_lambda_on_correct_solutions, current_results.lambda_max_on_correct_solutions, current_results.lambda_min_on_correct_solutions);
-                    printf("\t\tmean mu = %.1f\tmean AL attempts = %.1f\n", current_results.mean_mu_on_correct_solutions, current_results.mean_al_attempts_on_correct_solutions);
-                }
-                if(current_results.unfinished_ratio > 0){
-                    printf("\ton unfinished solutions:\n");
-                    printf("\t\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", current_results.mean_lambda_on_unfinished_solutions, current_results.lambda_max_on_unfinished_solutions, current_results.lambda_min_on_unfinished_solutions);
-                    printf("\t\tmean mu = %.1f\tmean AL attempts = %.1f\n", current_results.mean_mu_on_unfinished_solutions, current_results.mean_al_attempts_on_unfinished_solutions);
-                }
-                if(current_results.correct_ratio < 1-current_results.unfinished_ratio){
-                    printf("\ton wrong solutions:\n");
-                    printf("\t\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", current_results.mean_lambda_on_wrong_solutions, current_results.lambda_max_on_wrong_solutions, current_results.lambda_min_on_wrong_solutions);
-                    printf("\t\tmean mu = %.1f\tmean AL attempts = %.1f\n", current_results.mean_mu_on_wrong_solutions, current_results.mean_al_attempts_on_wrong_solutions);
-                }
-            }
-            results[(n-MIN_N)*max_m + m - MIN_M] = current_results;    
-
-        }
+    if( 0 == test_at_dimension(MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, PARAM_2_A, fill_b, PARAM_1_b, PARAM_2_b, al_end_condition, update_mu, &results,  verbose, strong_verbose)){
+        printf("Some error occured\n");
+        finalize(results);
+        terminate = true;
     }
 
-
-    test_results summary = {};
-    summary.lambda_min_on_correct_solutions = DBL_MAX;
-    summary.lambda_min_on_unfinished_solutions = DBL_MAX;
-    summary.lambda_min_on_wrong_solutions = DBL_MAX;
-    summary.lambda_max_on_correct_solutions = DBL_MIN;
-    summary.lambda_max_on_unfinished_solutions = DBL_MIN;
-    summary.lambda_max_on_wrong_solutions = DBL_MIN;
-    int tot_tests = results.size();
-    printf("tot_tests = %d\n", tot_tests);
-    for(int i = 0; i<tot_tests; i++){
-        summary.correct_ratio += results[i].correct_ratio/tot_tests;
-        summary.unfinished_ratio += results[i].unfinished_ratio/tot_tests;
-        summary.normalized_error_mean += results[i].normalized_error_mean/tot_tests;
-
-        summary.mean_al_attempts_on_correct_solutions += results[i].mean_al_attempts_on_correct_solutions/tot_tests;
-        summary.mean_al_attempts_on_unfinished_solutions += results[i].mean_al_attempts_on_unfinished_solutions/tot_tests;
-        summary.mean_al_attempts_on_wrong_solutions += results[i].mean_al_attempts_on_wrong_solutions/tot_tests;
-
-        summary.mean_lambda_on_correct_solutions += results[i].mean_lambda_on_correct_solutions/tot_tests;
-        summary.mean_lambda_on_unfinished_solutions += results[i].mean_lambda_on_unfinished_solutions/tot_tests;
-        summary.mean_lambda_on_wrong_solutions += results[i].mean_lambda_on_wrong_solutions/tot_tests;
-
-        summary.mean_mu_on_correct_solutions += results[i].mean_mu_on_correct_solutions/tot_tests;
-        summary.mean_mu_on_unfinished_solutions += results[i].mean_mu_on_unfinished_solutions/tot_tests;
-        summary.mean_mu_on_wrong_solutions += results[i].mean_mu_on_wrong_solutions/tot_tests;
-
-        summary.lambda_min_on_correct_solutions = results[i].lambda_min_on_correct_solutions < summary.lambda_min_on_correct_solutions ? results[i].lambda_min_on_correct_solutions : summary.lambda_min_on_correct_solutions;
-        summary.lambda_min_on_unfinished_solutions = results[i].lambda_min_on_unfinished_solutions < summary.lambda_min_on_unfinished_solutions ? results[i].lambda_min_on_unfinished_solutions : summary.lambda_min_on_unfinished_solutions;
-        summary.lambda_min_on_wrong_solutions = results[i].lambda_min_on_wrong_solutions < summary.lambda_min_on_wrong_solutions ? results[i].lambda_min_on_wrong_solutions : summary.lambda_min_on_wrong_solutions;
-
-        summary.lambda_max_on_correct_solutions = results[i].lambda_max_on_correct_solutions > summary.lambda_max_on_correct_solutions ? results[i].lambda_max_on_correct_solutions : summary.lambda_max_on_correct_solutions;
-        summary.lambda_max_on_unfinished_solutions = results[i].lambda_max_on_unfinished_solutions > summary.lambda_max_on_unfinished_solutions ? results[i].lambda_max_on_unfinished_solutions : summary.lambda_max_on_unfinished_solutions;
-        summary.lambda_max_on_wrong_solutions = results[i].lambda_max_on_wrong_solutions > summary.lambda_max_on_wrong_solutions ? results[i].lambda_max_on_wrong_solutions : summary.lambda_max_on_wrong_solutions;
-    }
-
-    printf("\n\nFINAL REPORT (MEAN VALUES)------------------------------------------------------------------------------------------------------------------\n");
-        printf("correct ratio = %.1f%%    unfinished ratio = %.1f%%    wrong ration = %.1f%%    normalized mean error = %.1f%%\n", summary.correct_ratio*100, summary.unfinished_ratio*100, (1 - summary.correct_ratio - summary.unfinished_ratio)*100, summary.normalized_error_mean*100);
-    if(summary.correct_ratio > 0){
-        printf("on correct solutions:\n");
-        printf("\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", summary.mean_lambda_on_correct_solutions, summary.lambda_max_on_correct_solutions, summary.lambda_min_on_correct_solutions);
-        printf("\tmean mu = %.1f\tmean AL attempts = %.1f\n", summary.mean_mu_on_correct_solutions, summary.mean_al_attempts_on_correct_solutions);
-    }
-    if(summary.unfinished_ratio > 0){
-        printf("on unfinished solutions:\n");
-        printf("\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", summary.mean_lambda_on_unfinished_solutions, summary.lambda_max_on_unfinished_solutions, summary.lambda_min_on_unfinished_solutions);
-        printf("\tmean mu = %.1f\tmean AL attempts = %.1f\n", summary.mean_mu_on_unfinished_solutions, summary.mean_al_attempts_on_unfinished_solutions);
-    }
-    if(summary.correct_ratio < 1 - summary.unfinished_ratio){
-        printf("on wrong solutions:\n");
-        printf("\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", summary.mean_lambda_on_wrong_solutions, summary.lambda_max_on_wrong_solutions, summary.lambda_min_on_wrong_solutions);
-        printf("\tmean mu = %.1f\tmean AL attempts = %.1f\n", summary.mean_mu_on_wrong_solutions, summary.mean_al_attempts_on_wrong_solutions);
-    }
 
     finalize(results);
-    finalize(summary);
 
 }
 
@@ -1196,7 +1095,7 @@ void find_x_min_AL_brute_force(double** Q, int dim, double** A, int rA, double**
     delete [] lambda_t;
 }
 
-int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initial_mu, double initial_lambda, double rho, void (*fill_Q)(double**, int, float, float), double lb_Q, double ub_Q, void (*fill_A)(double**, int, int, float, float), double lb_A,double ub_A, void (*fill_b)(double**, int, float, float), double lb_b, double ub_b, std::function<bool(int, int, int, int, double**, double, double**)> al_end_condition, double (*update_mu)(double, double), test_results* results, bool verbose, bool strong_verbose){
+int test_at_dimension(int MAXITER, int N_AL_ATTEMPTS, double initial_mu, double initial_lambda, double rho, void (*fill_Q)(double**, int, float, float), double lb_Q, double ub_Q, void (*fill_A)(double**, int, int, float, float), double lb_A,double ub_A, void (*fill_b)(double**, int, float, float), double lb_b, double ub_b, std::function<bool(int, int, int, int, double**, double, double**)> al_end_condition, double (*update_mu)(double, double), test_results* results, bool verbose, bool strong_verbose){
     printf("N = %d\tM = %d\n", N, M);
     
     auto start = std::chrono::high_resolution_clock::now();
@@ -1250,9 +1149,9 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
     for(int iter = 0; iter < MAXITER; iter++) {
         correct = unfinished = wrong = 0;
 
-        fill_Q(Q, N, lb_Q, ub_Q);
-        fill_A(A, M, N, lb_A, ub_A);
-        fill_b(b, M, lb_b, ub_b);
+        fill_Q(Q, lb_Q, ub_Q);
+        fill_A(A, lb_A, ub_A);
+        fill_b(b, lb_b, ub_b);
 
         if(verbose || strong_verbose){
             printf("-------------------------------------------------------------\n");
@@ -1360,7 +1259,7 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
             }
             ok = true;
 
-            find_x_min_AL_brute_force(Q, N, A, M, b, lambda, mu, min_x, c, &al_min_val);
+            find_x_min_AL_brute_force(Q, A, b, lambda, mu, min_x, c, &al_min_val);
             
             if(strong_verbose){
                 for(int i = 0; i < M; i++){
@@ -1392,12 +1291,12 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
             //mu = mu * rho;
             //mu = mu + rho;
             mu = update_mu(mu, rho);
-            al_condition = al_end_condition(i, N_AL_ATTEMPTS, N, M, lambda, mu, c);
+            al_condition = al_end_condition(i, N_AL_ATTEMPTS, lambda, mu, c);
         } while (!ok && al_condition);
         //} while (!check_c(c, M) && al_condition);
 
 
-        correct = al_condition && ok && calculate_xQx(Q, min_x, N) == true_min_val;
+        correct = al_condition && ok && calculate_xQx(Q, min_x) == true_min_val;
         unfinished = !al_condition;
         if(correct && unfinished){
             printf("ERROR: the same problem is both correct and unfinished\n");
@@ -1419,10 +1318,10 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
         else if(wrong){                     //AL has chosen the wrong minimum
             if(strong_verbose)
                 printf("PROBLEM SOLVED WRONGLY\n");  
-            normalized_error_mean += true_max_val-true_min_val != 0 ? (calculate_xQx(Q, min_x, N) - true_min_val) / (true_max_val-true_min_val) : 1;
+            normalized_error_mean += true_max_val-true_min_val != 0 ? (calculate_xQx(Q, min_x) - true_min_val) / (true_max_val-true_min_val) : 1;
             //It DOESN'T make sesnse that the error is negative. true_min_val is the minimum feasible value of the function, if AL exit the loop beleiving that a lower minimum (that could exists) fulfils the constraint, there is a problem while checking c(x)
             if(normalized_error_mean < 0){
-                printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, calculate_xQx(Q, min_x, N));
+                printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, calculate_xQx(Q, min_x));
                 printf("Q:\n");
                 for(int i = 0; i < N; i++){
                     for(int j = 0; j < N; j++){
@@ -1595,51 +1494,8 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
     return 1;
 }
 
-void finalize(std::vector<test_results> results){
-    std::time_t t = std::time(nullptr);
-    char mbstr[100];
-    std::strftime(mbstr, sizeof(mbstr), "%Y%m%d_%H%M%S", std::localtime(&t));
 
-    std::stringstream filename;
-    filename << results_path << "/results_" << mbstr;
-    if(strlen(name_suffix) > 0){
-        filename << "__" << name_suffix;
-    }
-    filename << ".csv";
-
-    FILE* file = fopen(filename.str().c_str(), "w");
-    fprintf(file, "N,M,correct_ratio,unfinished_ratio,normalized_error_mean,mean_al_attempts_on_correct_solutions,mean_al_attempts_on_wrong_solutions,mean_al_attempts_on_unfinished_solutions,mean_lambda_on_correct_solutions,mean_lambda_on_unfinished_solutions,mean_lambda_on_wrong_solutions,mean_mu_on_correct_solutions,mean_mu_on_unfinished_solutions,mean_mu_on_wrong_solutions,lambda_min_on_correct_solutions,lambda_min_on_unfinished_solutions,lambda_min_on_wrong_solutions,lambda_max_on_correct_solutions,lambda_max_on_unfinished_solutions,lambda_max_on_wrong_solutions,duration\n");
-    for(int i = 0; i < results.size(); i++){
-        fprintf(file, "%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f%s", 
-            results[i].N,
-            results[i].M,
-            results[i].correct_ratio,
-            results[i].unfinished_ratio,
-            results[i].normalized_error_mean,
-            results[i].mean_al_attempts_on_correct_solutions,
-            results[i].mean_al_attempts_on_wrong_solutions,
-            results[i].mean_al_attempts_on_unfinished_solutions,
-            results[i].mean_lambda_on_correct_solutions,
-            results[i].mean_lambda_on_unfinished_solutions,
-            results[i].mean_lambda_on_wrong_solutions,
-            results[i].mean_mu_on_correct_solutions,
-            results[i].mean_mu_on_unfinished_solutions,
-            results[i].mean_mu_on_wrong_solutions,
-            results[i].lambda_min_on_correct_solutions,
-            results[i].lambda_min_on_unfinished_solutions,
-            results[i].lambda_min_on_wrong_solutions,
-            results[i].lambda_max_on_correct_solutions,
-            results[i].lambda_max_on_unfinished_solutions,
-            results[i].lambda_max_on_wrong_solutions,
-            results[i].duration,
-            i < results.size()-1 ? "\n" : ""
-            );
-        }
-
-    fclose(file);
-}
-
-void finalize(test_results mean_results){
+void finalize(test_results results){
     std::time_t t = std::time(nullptr);
     char mbstr[100];
     std::strftime(mbstr, sizeof(mbstr), "%Y%m%d_%H%M%S", std::localtime(&t));
@@ -1654,27 +1510,27 @@ void finalize(test_results mean_results){
     FILE* file = fopen(filename.str().c_str(), "w");
     fprintf(file, "N,M,correct_ratio,unfinished_ratio,normalized_error_mean,mean_al_attempts_on_correct_solutions,mean_al_attempts_on_wrong_solutions,mean_al_attempts_on_unfinished_solutions,mean_lambda_on_correct_solutions,mean_lambda_on_unfinished_solutions,mean_lambda_on_wrong_solutions,mean_mu_on_correct_solutions,mean_mu_on_unfinished_solutions,mean_mu_on_wrong_solutions,lambda_min_on_correct_solutions,lambda_min_on_unfinished_solutions,lambda_min_on_wrong_solutions,lambda_max_on_correct_solutions,lambda_max_on_unfinished_solutions,lambda_max_on_wrong_solutions,duration\n");
     fprintf(file, "%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", 
-        mean_results.N,
-        mean_results.M,
-        mean_results.correct_ratio,
-        mean_results.unfinished_ratio,
-        mean_results.normalized_error_mean,
-        mean_results.mean_al_attempts_on_correct_solutions,
-        mean_results.mean_al_attempts_on_wrong_solutions,
-        mean_results.mean_al_attempts_on_unfinished_solutions,
-        mean_results.mean_lambda_on_correct_solutions,
-        mean_results.mean_lambda_on_unfinished_solutions,
-        mean_results.mean_lambda_on_wrong_solutions,
-        mean_results.mean_mu_on_correct_solutions,
-        mean_results.mean_mu_on_unfinished_solutions,
-        mean_results.mean_mu_on_wrong_solutions,
-        mean_results.lambda_min_on_correct_solutions,
-        mean_results.lambda_min_on_unfinished_solutions,
-        mean_results.lambda_min_on_wrong_solutions,
-        mean_results.lambda_max_on_correct_solutions,
-        mean_results.lambda_max_on_unfinished_solutions,
-        mean_results.lambda_max_on_wrong_solutions,
-        mean_results.duration       
+        results.N,
+        results.M,
+        results.correct_ratio,
+        results.unfinished_ratio,
+        results.normalized_error_mean,
+        results.mean_al_attempts_on_correct_solutions,
+        results.mean_al_attempts_on_wrong_solutions,
+        results.mean_al_attempts_on_unfinished_solutions,
+        results.mean_lambda_on_correct_solutions,
+        results.mean_lambda_on_unfinished_solutions,
+        results.mean_lambda_on_wrong_solutions,
+        results.mean_mu_on_correct_solutions,
+        results.mean_mu_on_unfinished_solutions,
+        results.mean_mu_on_wrong_solutions,
+        results.lambda_min_on_correct_solutions,
+        results.lambda_min_on_unfinished_solutions,
+        results.lambda_min_on_wrong_solutions,
+        results.lambda_max_on_correct_solutions,
+        results.lambda_max_on_unfinished_solutions,
+        results.lambda_max_on_wrong_solutions,
+        results.duration       
         );
     
     fclose(file);
