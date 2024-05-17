@@ -21,6 +21,7 @@
 #define sub 0
 
 
+
 #define CHECK(call)                                                                 \
 	{                                                                                 \
 		const cudaError_t err = call;                                                   \
@@ -81,48 +82,48 @@ void print_file_stdout(FILE *file, const char *format, ...);
 
 // SYNTETIC DATA FUNCTIONS
 //function to fill a square up-triangulare matrix dim*dim with random values between lb and up
-void fill_Q_matrix_uniform(double** matrix, int dim, float lb, float ub);
+void fill_Q_matrix_uniform(double** matrix0, float lb, float ub);
 
 //function to fill a rm*cm matrix with random values between lb and up
-void fill_A_matrix_uniform(double** matrix, int rm, int cm, float lb, float ub);
+void fill_A_matrix_uniform(double** matrix, float lb, float ub);
 
 //function to fill vector b of size M with random values between lb and up
-void fill_b_vector_uniform(double** vector, int len, float lb, float ub);
+void fill_b_vector_uniform(double** vector,  float lb, float ub);
 
-void fill_lamnda(double** lambda, int M, float initial_lambda, float noise_amplitude);
+void fill_lamnda(double** lambda, float initial_lambda, float noise_amplitude);
 
 //like in "Quantum Multimodel Fitting" paper. 
-void fill_Q_MMF(double** matrix, int dim, float not_used_1, float not_used_2);
+void fill_Q_MMF(double** matrix, float not_used_1, float not_used_2);
 // since the inequality constraint is Pz >= 1 with P filled with 1s and 0s, it turns into Pz <= -1 with P filled with -1s and 0s
-void fill_A_MMF(double** matrix, int rm, int cm, float one_probability, float not_used_2);
+void fill_A_MMF(double** matrix, float one_probability, float not_used_2);
 // since the inequality constraint is Pz >= 1 with P filled with 1s and 0s, it turns into Pz <= -1 with P filled with -1s and 0s
-void fill_b_MMF(double** vector, int len, float not_used_1, float not_used_2);
+void fill_b_MMF(double** vector, float not_used_1, float not_used_2);
 // fill Q with diagonal values between lb and ub
-void fill_Q_PCRL(double** matrix, int dim, float lb, float ub);
+void fill_Q_PCRL(double** matrix, float lb, float ub);
 // fill b with -b (since >= instead of <=)
-void fill_b_PCR(double** vector, int len, float b, float not_used_2);
+void fill_b_PCR(double** vector, float b, float not_used_2);
 //fill matrix A manually by std input
-void fill_A_manual(double** matrix, int rm, int cm, float not_used_1, float not_used_2) {
+void fill_A_manual(double** matrix, float not_used_1, float not_used_2) {
     printf("Enter the elements of the A matrix:\n");
-    for (int i = 0; i < rm; i++) {
-        for (int j = 0; j < cm; j++) {
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < N; j++) {
             scanf("%lf", &matrix[i][j]);
         }
     }
 }
 
 // Fill matrix Q manually by std input
-void fill_Q_manual(double** matrix, int dim, float not_used_1, float not_used_2) {
+void fill_Q_manual(double** matrix, float not_used_1, float not_used_2) {
     printf("Enter the elements of the Q matrix:\n");
-    for (int i = 0; i < dim; i++) {
-        for (int j = 0; j < dim; j++) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
             scanf("%lf", &matrix[i][j]);
         }
     }
     //print the matrix
     printf("The Q matrix is:\n");
-    for (int i = 0; i < dim; i++) {
-        for (int j = 0; j < dim; j++) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
             printf("%lf ", matrix[i][j]);
         }
         printf("\n");
@@ -130,14 +131,14 @@ void fill_Q_manual(double** matrix, int dim, float not_used_1, float not_used_2)
 }
 
 // Fill vector b manually by std input
-void fill_b_manual(double** vector, int len, float not_used_1, float not_used_2) {
+void fill_b_manual(double** vector, float not_used_1, float not_used_2) {
     printf("Enter the elements of the b vector:\n");
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < M; i++) {
         scanf("%lf", vector[i]);
     }
     //print the vector
     printf("The b vector is:\n");
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < M; i++) {
         printf("%lf ", vector[i][0]);
     }
 }
@@ -162,16 +163,16 @@ void transpose_vector(double** a, double** b, int len);
 bool equal_vec(double** a, double** b, int len);
 
 //function to check if constraints are satisfied
-int check_c(double** c, int rA);
+int check_c(double** c);
 
 //function to find the minimum via brute force
-bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b, double** returned_min_x, double* returned_max_val, double* returned_min_val, bool verbose);
+bool find_x_min_brute_force(double** Q, double** A, double** b, double** returned_min_x, double* returned_max_val, double* returned_min_val, bool verbose);
 
 //function to find the minimum via brute force with AL
-void find_x_min_AL_brute_force(double** Q, int dim, double** A, int rA, double** b, double** lambda, double mu, double** returned_min_x, double** returned_c, double* retured_min_val);
+void find_x_min_AL_brute_force(double** Q, double** A, double** b, double** lambda, double mu, double** returned_min_x, double** returned_c, double* retured_min_val);
 
 //function to calculate x^tQx
-double calculate_xQx(double** Q, double** x, int dim);
+double calculate_xQx(double** Q, double** x);
 
 //function to test the algorithm at a certain dimension
 int test_at_dimension(
@@ -541,62 +542,62 @@ int main(int argc, char** argv) {
 
 }
 
-void fill_lamnda(double** lambda, int M, float initial_lambda, float noise_amplitude){
+void fill_lamnda(double** lambda, float initial_lambda, float noise_amplitude){
     for(int i = 0; i < M; i++){
         lambda[i][0] = initial_lambda + (double)rand()/(double)RAND_MAX * noise_amplitude;
     }
 }
 
-void fill_Q_matrix_uniform(double** matrix, int dim, float lb, float ub){
+void fill_Q_matrix_uniform(double** matrix, float lb, float ub){
     double range = ub - lb;
-    for(int i = 0; i < dim; i++){
-        for(int j = i; j < dim; j++){
+    for(int i = 0; i < N; i++){
+        for(int j = i; j < N; j++){
             matrix[i][j] = lb + (double)rand()/(double)RAND_MAX * range;
         }
     }
 
     //set 0 to the lower triangular part
-    for(int i = 0; i < dim; i++){
+    for(int i = 0; i < N; i++){
         for(int j = 0; j < i; j++){
             matrix[i][j] = 0;
         }
     }
 }
 
-void fill_b_vector_uniform(double** vector, int len, float lb, float ub){
+void fill_b_vector_uniform(double** vector, float lb, float ub){
     double range = ub - lb;
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < M; i++){
         vector[i][0] = lb + (double)rand()/(double)RAND_MAX * range;
     }
 }
 
-void fill_A_matrix_uniform(double** matrix, int rm, int cm, float lb, float ub){
+void fill_A_matrix_uniform(double** matrix, float lb, float ub){
     double range = ub - lb;
-    for(int i = 0; i < rm; i++){
-        for(int j = 0; j < cm; j++){
+    for(int i = 0; i < M; i++){
+        for(int j = 0; j < N; j++){
             matrix[i][j] = lb + (double)rand()/(double)RAND_MAX * range;
         }
     }
 }
 
-void fill_Q_MMF(double** matrix, int dim, float not_used_1, float not_used_2){
+void fill_Q_MMF(double** matrix, float not_used_1, float not_used_2){
     // Fill the matrix with zeros
-    for(int i = 0; i < dim; i++){
-        for(int j = 0; j < dim; j++){
+    for(int i = 0; i < N; i++){
+        for(int j = 0; j < N; j++){
             matrix[i][j] = 0;
         }
     }
 
     // Put 1s on the diagonal
-    for(int i = 0; i < dim; i++){
+    for(int i = 0; i < N; i++){
         matrix[i][i] = 1;
     }
 }
 
 
-void fill_A_MMF(double** matrix, int rm, int cm, float one_probability, float b){
-    for(int i = 0; i < rm; i++){
-        for(int j = 0; j < cm; j++){
+void fill_A_MMF(double** matrix, float one_probability, float b){
+    for(int i = 0; i < M; i++){
+        for(int j = 0; j < N; j++){
             matrix[i][j] = 0;
         }
     }
@@ -610,7 +611,7 @@ void fill_A_MMF(double** matrix, int rm, int cm, float one_probability, float b)
     std::uniform_int_distribution<> dis1(0, cm-1);
     std::unordered_set<int> idxs_to_fill;
 
-    for(int i=0; i<rm; i++){
+    for(int i=0; i<M; i++){
         idxs_to_fill.clear();
 
 
@@ -634,25 +635,25 @@ void fill_A_MMF(double** matrix, int rm, int cm, float one_probability, float b)
     //    }
     //    printf("\n");
     //}
-    int n_missing_ones = (int)(rm * cm * one_probability) - rm*int_b;
+    int n_missing_ones = (int)(M * N * one_probability) - M*int_b;
     if(n_missing_ones < 0){
         printf("ERROR: probability to low to ensure a feasible problem. Given N = %d, M = %d, b = %d, one probability must be >= %f\n", rm, cm, int_b, (float)(rm*int_b)/(rm*cm));
         exit(0);
     }
 
 
-    int n_empty_spaces = rm * (cm - int_b);
+    int n_empty_spaces = M * (N - int_b);
     //printf("n_missing_ones: %d\n", n_missing_ones);
     //printf("n_empty_spaces: %d\n", n_empty_spaces);
 
 
     int empty_spaces_idxs[n_empty_spaces];
     int last_esi = 0;
-    for(int i = 0; i<rm; i++){
-        for(int j=0; j<cm; j++){
+    for(int i = 0; i<M; i++){
+        for(int j=0; j<N; j++){
             //printf("last_esi = %d\n", last_esi);
             if(matrix[i][j] == 0){
-                empty_spaces_idxs[last_esi] = i * cm + j;
+                empty_spaces_idxs[last_esi] = i * N + j;
                 last_esi++;
             }
         }
@@ -675,36 +676,36 @@ void fill_A_MMF(double** matrix, int rm, int cm, float one_probability, float b)
     for(int i=0; i<n_missing_ones; i++){
         int int_idx = empty_spaces_idxs[*it];
         //printf("i = %d, int_idx = %d, row = %d, col = %d\n", i, int_idx, int_idx / cm, int_idx % cm);
-        matrix[int_idx / cm][int_idx % cm] = -1;
+        matrix[int_idx / N][int_idx % N] = -1;
         ++it;
         //printf("cehck\n");
     }
     //printf("fill_A done\n");
 }
 
-void fill_b_MMF(double** vector, int len, float not_used_1, float not_used_2){
-    for(int i = 0; i < len; i++){
+void fill_b_MMF(double** vector, float not_used_1, float not_used_2){
+    for(int i = 0; i < M; i++){
         vector[i][0] = -1;
     }
 }
 
-void fill_Q_PCRL(double** matrix, int dim, float lb, float ub){
+void fill_Q_PCRL(double** matrix, float lb, float ub){
     // Fill the matrix with zeros
-    for(int i = 0; i < dim; i++){
-        for(int j = 0; j < dim; j++){
+    for(int i = 0; i < N; i++){
+        for(int j = 0; j < N; j++){
             matrix[i][j] = 0;
         }
     }
 
     // Put 1s on the diagonal
     double range = ub - lb;
-    for(int i = 0; i < dim; i++){
+    for(int i = 0; i < N; i++){
         matrix[i][i] = lb + (double)rand()/(double)RAND_MAX * range;    
     }
 }
 
-void fill_b_PCR(double** vector, int len, float b, float not_used_2){
-    for(int i = 0; i < len; i++){
+void fill_b_PCR(double** vector, float b, float not_used_2){
+    for(int i = 0; i < M; i++){
         vector[i][0] = b;
     }
 }
@@ -797,8 +798,8 @@ bool equal_vec(double** a, double** b, int len){
     return true;
 }
 
-int check_c(double** c, int rA){
-    for(int i = 0; i < rA; i++){
+int check_c(double** c){
+    for(int i = 0; i < M; i++){
         if(c[i][0] > 0){
             return 0;
         }
@@ -806,34 +807,34 @@ int check_c(double** c, int rA){
     return 1;
 }
 
-double calculate_xQx(double** Q, double** x, int dim){
-    double** tmp = new double*[dim];
+double calculate_xQx(double** Q, double** x){
+    double** tmp = new double*[N];
     double** x_t = new double*[1];
     double** result = new double*[1];
-    for(int i = 0; i < dim; i++){
+    for(int i = 0; i < N; i++){
         tmp[i] = new double[1];
     }
-    x_t[0] = new double[dim];
+    x_t[0] = new double[N];
     result[0] = new double[1];
 
     double res = 0;
 
     if(Q_DIAG){
-        for(int i = 0; i < dim; i++){
+        for(int i = 0; i < N; i++){
             res += x[i][0] == 1 ? Q[i][i] : 0;
         }
         return res;
     }
-    multiply_matrices(Q, x, tmp, dim, dim, 1);
-    transpose_vector(x, x_t, dim);
-    multiply_matrices(x_t, tmp, result, 1, dim, 1);
+    multiply_matrices(Q, x, tmp, N, N, 1);
+    transpose_vector(x, x_t, N);
+    multiply_matrices(x_t, tmp, result, 1, N, 1);
 
     res = result[0][0];
     // Deallocate
     delete [] x_t[0];
     delete [] result[0];
 
-    for(int i = 0; i < dim; ++i) {
+    for(int i = 0; i < N; ++i) {
         delete [] tmp[i];
     }
 
@@ -845,49 +846,49 @@ double calculate_xQx(double** Q, double** x, int dim){
 
 }
 
-bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b, double** returned_min_x, double* returned_max_val, double* returned_min_val, bool verbose){
+bool find_x_min_brute_force(double** Q, double** A, double** b, double** returned_min_x, double* returned_max_val, double* returned_min_val, bool verbose){
 
     // Allocate
     double** min_val = new double*[1];
     double** max_val = new double*[1];
     double** current_val = new double*[1];
-    double** x = new double*[dim];
+    double** x = new double*[N];
     double** x_t = new double*[1];
-    double** tmp = new double*[dim];
-    double** global_min_x = new double*[dim];
-    double** c_x = new double*[rA];
+    double** tmp = new double*[N];
+    double** global_min_x = new double*[N];
+    double** c_x = new double*[M];
 
     min_val[0] = new double[1];
     max_val[0] = new double[1];
     current_val[0] = new double[1];
-    x_t[0] = new double[dim];
+    x_t[0] = new double[N];
     bool at_lest_one_feasible_solution = false;
     int n_of_minimums = 0;
     
 
-    for(int i = 0; i < dim; ++i){
+    for(int i = 0; i < N; ++i){
         x[i] = new double[1];
         tmp[i] = new double[1];
         global_min_x[i] = new double[1];
     }
 
-    for(int i = 0; i < rA; ++i) {
+    for(int i = 0; i < M; ++i) {
         c_x[i] = new double[1];
     }
 
     //start brute forcing
     bool init = false;
-    for(int i=0; i < pow(2,dim); i++){
+    for(int i=0; i < pow(2,N); i++){
         
         //convert i to binary
-        for(int j = 0; j < dim; j++){
+        for(int j = 0; j < N; j++){
             x[j][0] = (i >> j) & 0b1;
         }
 
-        multiply_matrices(A, x, c_x, rA, dim, 1);
-        sum_matrices(c_x, b, c_x, rA, 1, sub);
+        multiply_matrices(A, x, c_x, M, N, 1);
+        sum_matrices(c_x, b, c_x, M, 1, sub);
 
-        if(!check_c(c_x, rA)){
+        if(!check_c(c_x)){
             continue;
         }
         else at_lest_one_feasible_solution = true;
@@ -895,20 +896,20 @@ bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b,
         //calculate x^tQx
         if(Q_DIAG){
             current_val[0][0] = 0;
-            for(int i = 0; i < dim; i++){
+            for(int i = 0; i < N; i++){
                 current_val[0][0] += x[i][0] == 1 ? Q[i][i] : 0;
             }
         } else {
-            multiply_matrices(Q, x, tmp, dim, dim, 1);
-            transpose_vector(x, x_t, dim);
-            multiply_matrices(x_t, tmp, current_val, 1, dim, 1);
+            multiply_matrices(Q, x, tmp, N, N, 1);
+            transpose_vector(x, x_t, N);
+            multiply_matrices(x_t, tmp, current_val, 1, N, 1);
         }
 
         if(!init){
             init = true;
             min_val[0][0] = current_val[0][0];
             max_val[0][0] = current_val[0][0];
-            copy_vector(x, global_min_x, dim);
+            copy_vector(x, global_min_x, N);
             n_of_minimums = 1;
         } else {
             if(current_val[0][0] == min_val[0][0])
@@ -916,7 +917,7 @@ bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b,
             else if(current_val[0][0] < min_val[0][0]){
                 min_val[0][0] = current_val[0][0];
                 n_of_minimums = 1;
-                copy_vector(x, global_min_x, dim);
+                copy_vector(x, global_min_x, N);
             } else if(current_val[0][0] > max_val[0][0]){
                 max_val[0][0] = current_val[0][0];
             }
@@ -924,7 +925,7 @@ bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b,
     }
 
     if(at_lest_one_feasible_solution){
-        copy_vector(global_min_x, returned_min_x, dim);
+        copy_vector(global_min_x, returned_min_x, N);
         *returned_max_val = max_val[0][0];
         *returned_min_val = min_val[0][0];
     } else {
@@ -935,7 +936,7 @@ bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b,
     if(verbose){
         if(at_lest_one_feasible_solution){
             printf("Feasible minimum found in x = [ ");
-            for(int i = 0; i < dim; i++){
+            for(int i = 0; i < N; i++){
                 printf("%.0f ", global_min_x[i][0]);
             }
             printf("] with value %.1f\n", min_val[0][0]);
@@ -951,13 +952,13 @@ bool find_x_min_brute_force(double** Q, int dim, double** A, int rA, double** b,
     delete [] current_val[0];
     delete [] x_t[0];
 
-    for(int i = 0; i < dim; ++i) {
+    for(int i = 0; i < N; ++i) {
         delete [] x[i];
         delete [] tmp[i];
         delete [] global_min_x[i];
     }
 
-    for(int i = 0; i < rA; ++i) {
+    for(int i = 0; i < M; ++i) {
         delete [] c_x[i];
     }
 
@@ -1095,7 +1096,7 @@ void find_x_min_AL_brute_force(double** Q, int dim, double** A, int rA, double**
     delete [] lambda_t;
 }
 
-int test_at_dimension(int MAXITER, int N_AL_ATTEMPTS, double initial_mu, double initial_lambda, double rho, void (*fill_Q)(double**, int, float, float), double lb_Q, double ub_Q, void (*fill_A)(double**, int, int, float, float), double lb_A,double ub_A, void (*fill_b)(double**, int, float, float), double lb_b, double ub_b, std::function<bool(int, int, int, int, double**, double, double**)> al_end_condition, double (*update_mu)(double, double), test_results* results, bool verbose, bool strong_verbose){
+int test_at_dimension(int MAXITER, int N_AL_ATTEMPTS, double initial_mu, double initial_lambda, double rho, void (*fill_Q)(double**, float, float), double lb_Q, double ub_Q, void (*fill_A)(double**, float, float), double lb_A,double ub_A, void (*fill_b)(double**, float, float), double lb_b, double ub_b, std::function<bool(int, int, int, int, double**, double, double**)> al_end_condition, double (*update_mu)(double, double), test_results* results, bool verbose, bool strong_verbose){
     printf("N = %d\tM = %d\n", N, M);
     
     auto start = std::chrono::high_resolution_clock::now();
@@ -1178,7 +1179,7 @@ int test_at_dimension(int MAXITER, int N_AL_ATTEMPTS, double initial_mu, double 
         }
         mu = initial_mu;
 
-        fill_lamnda(lambda, M, initial_lambda, 0);
+        fill_lamnda(lambda, initial_lambda, 0);
 
         //NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
         

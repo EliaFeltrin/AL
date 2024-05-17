@@ -1,10 +1,13 @@
 #include <iostream>
-#include <cuda_runtime.h>
+//#include <cuda_runtime.h>
 
 typedef double Q_Type;
 typedef double b_Type;
 typedef double A_Type;
 typedef double fx_Type;
+
+#define N 10
+#define M 10
 
 
 
