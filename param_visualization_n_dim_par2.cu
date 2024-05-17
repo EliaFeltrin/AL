@@ -1298,10 +1298,12 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
             }
         }
 
-        double* Q_lin_per_righe = new double[N * N];
+        //linarizzo Q considerando che è triangolare superiore con diagonal principale
+        double* Q_lin_per_righe = new double[N * (N+1) / 2];
+        int pos = 0;
         for(int i = 0; i < N; i++){
-            for(int j = 0; j < N; j++){
-                Q_lin_per_righe[i*N + j] = Q[i][j];
+            for(int j = i; j < N; j++){
+                Q_lin_per_righe[pos++] = Q[i][j];
             }
         }
 
