@@ -1310,7 +1310,7 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
         bool*         feasible_gpu;
         fx_Type*      fx_gpu; 
         int*          x_min_gpu;
-        double*       fx_min_gpu;
+        fx_Type*       fx_min_gpu;
 
         CHECK(cudaMalloc(&A_gpu, M * N * sizeof(A_Type)));
         CHECK(cudaMalloc(&Q_gpu, N * N * sizeof(Q_Type)));
@@ -1334,6 +1334,29 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
 
 
         reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
+
+        CHECK_KERNELCALL();
+	    CHECK(cudaDeviceSynchronize());
+
+        //TO DO: da fare reduce_max_feasible pere valcolare true_max_val e quindi gli errori
+
+        int true_min_x_dec;
+        CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(double), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(int), cudaMemcpyDeviceToHost));
+
+        for(int i = 0; i< N; i++){
+            expected_min_x[i][0] = (true_min_x_dec >> i) & 0b1;
+        }
+
+        if(strong_verbose){
+            printf("Expected minimum found in x = [ ");
+            for(int i = 0; i < N; i++){
+                printf("%.0f ", expected_min_x[i][0]);
+            }
+            printf("] with value %.1f\n", true_min_val);
+        }
+
+        true_max_val = 100000;                                          //TO DO: calcolare il vero massimo
 
         /*//NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
         if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
@@ -1410,7 +1433,7 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
             if(strong_verbose)
                 printf("PROBLEM SOLVED WRONGLY\n");  
             normalized_error_mean += true_max_val-true_min_val != 0 ? (calculate_xQx(Q, min_x, N) - true_min_val) / (true_max_val-true_min_val) : 1;
-            //It DOESN'T make sesnse that the error is negative. true_min_val is the minimum feasible value of the function, if AL exit the loop beleiving that a lower minimum (that could exists) fulfils the constraint, there is a problem while checking c(x)
+            //It DOESN'T make sesnse that the error is negative. true_min_val is the minimum feasible value of the function, if AL exits the loop beleiving that a lower minimum (that could exists) fulfils the constraints, there is a problem while checking c(x)
             if(normalized_error_mean < 0){
                 printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, calculate_xQx(Q, min_x, N));
                 printf("Q:\n");

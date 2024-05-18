@@ -41,6 +41,11 @@ __device__ __forceinline__ void atomicMin(double * addr_min, int* addr_argmin, d
 
 }
 
+__device__ __forceinline__ void atomicMax(double * addr_max, double value_max) {
+
+    
+}
+
 
 
 __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restrict__ A, const b_Type* __restrict__ b, int N, int M,
@@ -90,7 +95,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
 }
 
 
-__global__ void reduce_argmin_feasible(fx_Type* __restrict__ input, bool* __restrict__ feasible, double* __restrict__ min, int* __restrict__ x_min){
+__global__ void reduce_argmin_feasible(fx_Type* __restrict__ input, bool* __restrict__ feasible, fx_Type* __restrict__ min, int* __restrict__ x_min){
 
   	// Declare shared memory of N_THREADS elements
   	__shared__ double s_input[N_THREADS]; // Shared memory for the block
@@ -125,6 +130,47 @@ __global__ void reduce_argmin_feasible(fx_Type* __restrict__ input, bool* __rest
   	// Write result for this block to global memory
   	if (i == 0) {
   		atomicMin(min, x_min, s_input[0], s_x[0]);
+  	}
+
+	//retrun di minimum e x corrispondente
+    
+}
+
+__global__ void reduce_max_feasible(fx_Type* __restrict__ input, bool* __restrict__ feasible, fx_Type* __restrict__ max){
+
+  	// Declare shared memory of N_THREADS elements
+  	__shared__ double s_input[N_THREADS]; // Shared memory for the block
+  	//__shared__ bool s_feasible[N_THREADS]; // Shared memory for the block
+    __shared__ int s_x[N_THREADS]; // Shared memory for the block
+    
+
+  	// Position in the input array from which to start the reduction  
+  	const unsigned int i = threadIdx.x;
+
+  	// Offset the pointers to the correct block
+  	input += blockDim.x * blockIdx.x * 2;
+  	feasible += blockDim.x * blockIdx.x * 2;
+
+  	// perform first reduction step to copy the data from global memory to shared memory
+  	
+  	s_input[i] = DBL_MAX;
+	s_x[i] = -1;
+
+
+  	// Perform the reduction for each block indipendently
+  	for (unsigned int stride = blockDim.x; i < stride; stride /= 2) {
+  	    
+		__syncthreads(); //needs to be moved up since the first iteration is outside
+		
+		if(feasible[i] && s_input[i] < s_input[i + stride]){
+  	    	s_input[i] = s_input[i + stride];
+            s_x[i] = i + stride;
+        }
+  	}
+
+  	// Write result for this block to global memory
+  	if (i == 0) {
+  		atomicMax(max, s_input[0]);
   	}
 
 	//retrun di minimum e x corrispondente
