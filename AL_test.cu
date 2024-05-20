@@ -102,6 +102,9 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
 Q_Type compute_xQx(const Q_Type* __restrict__ Q, const bool* __restrict__ x, dim_Type N);
 
+Q_Type compute_max(const Q_Type* __restrict__ Q, dim_Type N);
+
+
 void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Type* __restrict__ A, A_Type* __restrict__ Q_plus_AT_A, const dim_Type M, const dim_Type N);
 
 
@@ -175,7 +178,7 @@ void print_file_stdout(FILE *file, const char *format, ...);
 
 
 
-/* #############################################################################################################################################*/ */
+/* #############################################################################################################################################*/ 
 
 
 //NB: viene memorizzata solo la diagonale, pertanto Q è di lunghezza N
@@ -191,7 +194,7 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
     for(dim_Type i = 0; i < N; i++){
             Q[i] = 1;
     }
-    printf("WARNING: you're using fill_Q_id_lin, which is quite useless since Q is the identity matrix");
+    printf("WARNING: you're using fill_Q_id_lin, which is quite useless since Q is the identity matrix\n");
 }
 
 //NB: non vengono memorizzati gli zeri della matrice triangolare inferiore
@@ -372,6 +375,24 @@ Q_Type compute_xQx(const Q_Type* __restrict__ Q, const bool* __restrict__ x, dim
     return res;
 };
 
+Q_Type compute_max(const Q_Type* __restrict__ Q, dim_Type N){
+    Q_Type res = 0;
+    if(Q_ID){
+        return N;
+    } else if(Q_DIAG){
+        for(dim_Type i = 0; i < N; i++){
+            res += Q[i];
+        }
+    } else {
+        unsigned int Q_len = N*(N+1)/2;
+        for(dim_Type i = 0; i < Q_len; i++){
+            res += Q[i];
+        }
+    }
+    return res;
+
+}
+
 
 int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, mu_Type initial_mu, lambda_Type initial_lambda,  mu_Type rho, 
                         void (*fill_Q)(Q_Type *Q, const dim_Type N, const Q_Type lowerbound_or_unused, const Q_Type upperbound_or_unused), Q_Type lb_Q, Q_Type ub_Q, 
@@ -422,6 +443,39 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     int unfinished_counter = 0;
     double normalized_error_mean = 0;
 
+
+
+    A_Type*     A_gpu; //input
+    Q_Type*     Q_gpu; //input
+    b_Type*     b_gpu; //input
+    
+    bool*       x_bin_buffer_gpu; //buffer
+    b_Type*     Ax_b_buffer_gpu;  //buffer
+
+    bool*       feasible_gpu; //output /input
+    fx_Type*    fx_gpu; // output / input
+    
+    x_dec_Type* x_min_gpu; //output
+    fx_Type*    fx_min_gpu; //output
+
+    fx_Type*    fx_max_gpu; //output
+
+    CHECK(cudaMalloc(&A_gpu, A_len * sizeof(A_Type)));
+    CHECK(cudaMalloc(&Q_gpu, Q_len * sizeof(Q_Type)));
+    CHECK(cudaMalloc(&b_gpu, M * sizeof(b_Type)));
+
+    CHECK(cudaMalloc(&x_bin_buffer_gpu, N * sizeof(bool) * pow(2,N))); //for each thread (thus each x) a buffer of N bools
+    CHECK(cudaMalloc(&Ax_b_buffer_gpu, M * sizeof(b_Type) * pow(2,N))); //for each thread (thus each x) a buffer of M b_Type
+
+    CHECK(cudaMalloc(&feasible_gpu, pow(2,N) * sizeof(bool)));
+    CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
+    
+    CHECK(cudaMalloc(&x_min_gpu, sizeof(x_dec_Type)));
+    CHECK(cudaMalloc(&fx_min_gpu, sizeof(fx_Type)));
+
+    CHECK(cudaMalloc(&fx_max_gpu, sizeof(fx_Type)););
+
+
     for(int iter = 0; iter < MAXITER; iter++) {
         correct = unfinished = wrong = 0;
 
@@ -441,47 +495,33 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         fill_lambda_lin(lambda, M, initial_lambda, 0);
 
     
-        A_Type*       A_gpu;
-        Q_Type*       Q_gpu;
-        b_Type*       b_gpu;
-        bool*         feasible_gpu;
-        fx_Type*      fx_gpu; 
-        int*          x_min_gpu;
-        fx_Type*       fx_min_gpu;
+        
 
-        CHECK(cudaMalloc(&A_gpu, A_len * sizeof(A_Type)));
-        CHECK(cudaMalloc(&Q_gpu, Q_len * sizeof(Q_Type)));
-        CHECK(cudaMalloc(&b_gpu, M * sizeof(b_Type)));
-        CHECK(cudaMalloc(&feasible_gpu, pow(2,N) * sizeof(bool)));
-        CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
-        CHECK(cudaMalloc(&x_min_gpu, sizeof(int)));
-        CHECK(cudaMalloc(&fx_min_gpu, sizeof(double)));
-
-        CHECK(cudaMemcpy(A_gpu, A, M * N * sizeof(A_Type), cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpy(Q_gpu, Q, N * N * sizeof(Q_Type), cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(A_gpu, A, A_len * sizeof(A_Type), cudaMemcpyHostToDevice));
+        CHECK(cudaMemcpy(Q_gpu, Q, Q_len * sizeof(Q_Type), cudaMemcpyHostToDevice));
         CHECK(cudaMemcpy(b_gpu, b, M * sizeof(b_Type), cudaMemcpyHostToDevice));
 
 
-        dim3 threads_per_block(1024);
-	    dim3 blocks_per_grid(pow(2,N-10));          ///RICORDATI DI PARAMETRIZZARE QUESTA ROBA PER N DIVERSI
 
-        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, feasible_gpu, fx_gpu);
+        int n_threads = min(N_THREADS, (int)pow(2,N));
+        dim3 threads_per_block(n_threads);
+	    dim3 blocks_per_grid(pow(2,N)/n_threads);          
+
+        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
         reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
-
         CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
-        //TO DO: da fare reduce_max_feasible pere valcolare true_max_val e quindi gli errori
 
         int true_min_x_dec;
         CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(double), cudaMemcpyDeviceToHost));
         CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(int), cudaMemcpyDeviceToHost));
 
         for(int i = 0; i< N; i++){
-            expected_min_x[i] = (true_min_x_dec >> i) & 0b1;
+            expected_min_x[i] = (true_min_x_dec >> i) & 1;
         }
 
         if(strong_verbose){
@@ -492,7 +532,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             printf("] with value %.1f\n", true_min_val);
         }
 
-        true_max_val = 100000;                                          //TO DO: calcolare il vero massimo
+        true_max_val = compute_max(Q, N);                                          //TO DO: calcolare il vero massimo
 
         /*//NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
         if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
@@ -668,7 +708,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         
 
     }
-    
+
+
     mean_lambda_on_correct_solutions = correct_counter != 0 ? mean_lambda_on_correct_solutions / correct_counter : 0;
     mean_mu_on_correct_solutions = correct_counter != 0 ? mean_mu_on_correct_solutions / correct_counter : 0;
     mean_al_attempts_on_correct_solutions = correct_counter != 0 ? mean_al_attempts_on_correct_solutions / correct_counter : 0;
@@ -709,6 +750,19 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     results->mean_mu_on_wrong_solutions = mean_mu_on_wrong_solutions;
     results->duration = elapsed.count();
 
+    //Free GPU memory
+    CHECK(cudaFree(A_gpu));
+    CHECK(cudaFree(Q_gpu));
+    CHECK(cudaFree(b_gpu));
+    
+    CHECK(cudaFree(x_bin_buffer_gpu));
+    CHECK(cudaFree(Ax_b_buffer_gpu));
+
+    CHECK(cudaFree(feasible_gpu));
+    CHECK(cudaFree(fx_gpu));
+    
+    CHECK(cudaFree(x_min_gpu));
+    CHECK(cudaFree(fx_min_gpu));
 
     // Deallocate
     delete[] Q;
