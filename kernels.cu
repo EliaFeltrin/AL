@@ -2,12 +2,14 @@
 #include <cstdint>
 #include <cuda_runtime.h>
 #include <float.h>
+#include "types.h"
 
-
-typedef double Q_Type;
-typedef double b_Type;
-typedef double A_Type;
-typedef double fx_Type;
+//typedef double Q_Type;
+//typedef double b_Type;
+//typedef double A_Type;
+//typedef double fx_Type;
+//typedef unsigned char dim_Type;
+//typedef float lambda_Type;
 
 #define N_THREADS 1024
 
