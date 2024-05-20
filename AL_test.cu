@@ -314,6 +314,7 @@ void print_Q(const Q_Type* Q, const dim_Type N){
                 else 
                     printf("%.0f ", Q[i]);
             }
+            printf("\n");
         }
         printf("\n");
     } else if(Q_DIAG){
@@ -324,6 +325,7 @@ void print_Q(const Q_Type* Q, const dim_Type N){
                 else 
                     printf("%.1f ", Q[i]);
             }
+            printf("\n");
         }
         printf("\n");
     } else {
