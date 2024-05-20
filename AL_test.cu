@@ -1,5 +1,7 @@
 #pragma once
 
+/*--------------------------------------- INCLUDES ------------------------------------------------ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -18,22 +20,11 @@
 #include <unordered_set>
 #include <cuda_runtime.h>
 
-
 #include "types.h"
 #include "kernels.cu"
 
-extern double MAX_MU;
-extern double MAX_LAMBDA;
 
-extern char name_suffix[20];  
-extern char results_path[100];
-
-enum stop_conditions_names {max_Al_attempts, max_mu, max_lambda, stop_conditions_end};
-enum fill_distributions {uniform, MMF, PCR, PCRL, fill_distributions_end};
-
-extern bool Q_DIAG;
-extern bool Q_ID;
-extern bool PCR_PROBLEM;
+/*--------------------------------------- MACROS -------------------------------------------------- */
 
 #define CHECK(call)                                                                         \
 	{                                                                                       \
@@ -52,6 +43,27 @@ extern bool PCR_PROBLEM;
 			exit(EXIT_FAILURE);                                                             \
 		}                                                                                   \
 	} 
+
+
+/*--------------------------------------- GLOBAL VARIABLES ---------------------------------------- */
+
+extern double MAX_MU;
+extern double MAX_LAMBDA;
+
+extern char name_suffix[20];  
+extern char results_path[100];
+
+extern bool Q_DIAG;
+extern bool Q_ID;
+extern bool PCR_PROBLEM;
+
+
+/*--------------------------------------- ENUMS --------------------------------------------------- */ 
+enum stop_conditions_names {max_Al_attempts, max_mu, max_lambda, stop_conditions_end};
+enum fill_distributions {uniform, MMF, PCR, PCRL, fill_distributions_end};
+
+
+/*--------------------------------------- STRUCTS ------------------------------------------------- */
 
 struct test_results{
     dim_Type N;
@@ -78,6 +90,23 @@ struct test_results{
 };
 
 
+/*--------------------------------------- PARTIAL RESULT COMPUTING FUNCTIONS ---------------------- */
+
+int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, mu_Type initial_mu, lambda_Type initial_lambda,  mu_Type rho, 
+                        void (*fill_Q)(Q_Type *Q, const dim_Type N, const Q_Type lowerbound_or_unused, const Q_Type upperbound_or_unused), Q_Type lb_Q, Q_Type ub_Q, 
+                        void (*fill_A)(A_Type* A, const dim_Type M, const dim_Type N, const float one_probability_or_unused, const b_Type b_or_unused), float one_prob, 
+                        void (*fill_b)(b_Type* b, const dim_Type M, const b_Type b_val_or_unused), b_Type b_val, 
+                        std::function<bool(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c)> al_end_condition, 
+                        mu_Type (*update_mu)(const mu_Type mu, const mu_Type rho), 
+                        test_results* results, bool verbose, bool strong_verbose);
+
+Q_Type compute_xQx(const Q_Type* __restrict__ Q, const bool* __restrict__ x, dim_Type N);
+
+void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Type* __restrict__ A, A_Type* __restrict__ Q_plus_AT_A, const dim_Type M, const dim_Type N);
+
+
+/*--------------------------------------- FILL FUNCTIONS ------------------------------------------ */
+
 void fill_Q_id_lin(Q_Type*  Q, const dim_Type N, const Q_Type not_used_1, const Q_Type not_used_2);
 void fill_Q_diag_lin(Q_Type*  Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbund);
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound);
@@ -92,21 +121,34 @@ void fill_b_manual_lin(b_Type* b, const dim_Type M, const b_Type unused) {printf
 void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_lambda);
 void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_lambda, lambda_Type noise_amplitude);
 
-int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, mu_Type initial_mu, lambda_Type initial_lambda,  mu_Type rho, 
-                        void (*fill_Q)(Q_Type *Q, const dim_Type N, const Q_Type lowerbound_or_unused, const Q_Type upperbound_or_unused), Q_Type lb_Q, Q_Type ub_Q, 
-                        void (*fill_A)(A_Type* A, const dim_Type M, const dim_Type N, const float one_probability_or_unused, const b_Type b_or_unused), float one_prob, 
-                        void (*fill_b)(b_Type* b, const dim_Type M, const b_Type b_val_or_unused), b_Type b_val, 
-                        std::function<bool(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c)> al_end_condition, 
-                        mu_Type (*update_mu)(const mu_Type mu, const mu_Type rho), 
-                        test_results* results, bool verbose, bool strong_verbose);
 
-void print_Q(const Q_Type* Q, const dim_Type N);
-void print_A(const A_Type* A, const dim_Type M, const dim_Type N);
-void print_b(const b_Type* b, const dim_Type M);
+/*--------------------------------------- INDEX CONVERTION FUNCTIONS ------------------------------ */
+
+inline dim_Type triang_index(dim_Type i, dim_Type j, dim_Type N){
+    return i * (N - 0.5) - i*i/2 + j;
+}
+
+/*--------------------------------------- HALT CONDITION FUNCTIONS -------------------------------- */
+
+inline bool max_Al_attempts_condition(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c){
+    return i < N_AL_ATTEMPTS;
+}
+
+inline bool max_mu_condition(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c){
+    return mu < MAX_MU;
+}
+
+inline bool max_lambda_condition(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c){
+    for(int i = 0; i < M; i++){
+        if(lambda[i] >= MAX_LAMBDA){
+            return false;
+        }
+    }
+    return true;
+}
 
 
-Q_Type compute_xQx(const Q_Type* __restrict__ Q, const bool* __restrict__ x, dim_Type N);
-
+/*--------------------------------------- MU UPDATING FUNCTIONS ----------------------------------- */
 
 inline mu_Type update_mu_exp(const mu_Type mu, const mu_Type rho){
     return mu * rho;
@@ -117,11 +159,14 @@ inline mu_Type update_mu_lin(const mu_Type mu, const mu_Type rho){
 }
 
 
-void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Type* __restrict__ A, A_Type* __restrict__ Q_plus_AT_A, const dim_Type M, const dim_Type N);
+/*--------------------------------------- PRINTING FUNCTIONS -------------------------------------- */
 
-inline dim_Type triang_index(dim_Type i, dim_Type j, dim_Type N){
-    return i * (N - 0.5) - i*i/2 + j;
-}
+void print_Q(const Q_Type* Q, const dim_Type N);
+void print_A(const A_Type* A, const dim_Type M, const dim_Type N);
+void print_b(const b_Type* b, const dim_Type M);
+
+
+/*--------------------------------------- SAVE ON FILE FUNCTIONS ---------------------------------- */
 
 void finalize(test_results mean_results);
 void finalize(std::vector<test_results> results);
@@ -130,14 +175,7 @@ void print_file_stdout(FILE *file, const char *format, ...);
 
 
 
-
-
-
-
-
-
-
-
+/* #############################################################################################################################################*/ */
 
 
 //NB: viene memorizzata solo la diagonale, pertanto Q è di lunghezza N
@@ -351,7 +389,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     srand(time(0));
 
     // Allocate
-    Q_Type* Q = new Q_Type[N*(N+1)/2];
+    const unsigned int Q_len = Q_DIAG ? N : N*(N+1)/2;
+    const unsigned int A_len = M * N;
+
+    Q_Type* Q = new Q_Type[Q_len];
     A_Type* A = new A_Type[M*N];
     b_Type* b = new b_Type[M];
     lambda_Type* lambda = new lambda_Type[M];
@@ -408,8 +449,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         int*          x_min_gpu;
         fx_Type*       fx_min_gpu;
 
-        CHECK(cudaMalloc(&A_gpu, M * N * sizeof(A_Type)));
-        CHECK(cudaMalloc(&Q_gpu, N * N * sizeof(Q_Type)));
+        CHECK(cudaMalloc(&A_gpu, A_len * sizeof(A_Type)));
+        CHECK(cudaMalloc(&Q_gpu, Q_len * sizeof(Q_Type)));
         CHECK(cudaMalloc(&b_gpu, M * sizeof(b_Type)));
         CHECK(cudaMalloc(&feasible_gpu, pow(2,N) * sizeof(bool)));
         CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
@@ -462,6 +503,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         int i = 0;
         bool ok;
         bool al_condition;
+        
+        Q_Type Q_plus_AT_A[N*(N+1)/2];
+        compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_plus_AT_A, M, N);
+
         do{
 
             if(strong_verbose){

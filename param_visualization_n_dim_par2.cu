@@ -25,57 +25,9 @@ char name_suffix[20] = "";
 char results_path[100] = "./results/";
 
 
-
 bool Q_DIAG = false;
 bool Q_ID = false;
 bool PCR_PROBLEM = false;
-
-
-//struct to store the results of the tests
-
-
-void print_file_stdout(FILE *file, const char *format, ...);
-
-
-//function to calculate the norm of a vector
-double norm(double** vector, int len);
-
-//function to copy a vector a to a vector b
-void copy_vector(double** a, double** b, int len);
-
-//function to transope a vector
-//NB: do not use a as b
-void transpose_vector(double** a, double** b, int len);
-
-//function to check if two vectors are equal
-bool equal_vec(double** a, double** b, int len);
-
-//function to check if constraints are satisfied
-int check_c(double** c, int rA);
-
-
-//function to save in a .csv file the results of the tests
-void finalize(std::vector<test_results> results);
-void finalize(test_results mean_results);
-
-//al terimination condition: parameters: i, N_AL_ATTEMPTS, lambda, mu, c
-bool max_Al_attempts_condition(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c){
-    return i < N_AL_ATTEMPTS;
-}
-
-bool max_mu_condition(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c){
-    return mu < MAX_MU;
-}
-
-bool max_lambda_condition(const int i, const int N_AL_ATTEMPTS, const dim_Type N, const dim_Type M, const lambda_Type* __restrict__ lambda, const mu_Type mu, const b_Type* __restrict__ c){
-    for(int i = 0; i < M; i++){
-        if(lambda[i] >= MAX_LAMBDA){
-            return false;
-        }
-    }
-    return true;
-}
-
 
 
 
@@ -420,7 +372,6 @@ int main(int argc, char** argv) {
     summary.lambda_max_on_unfinished_solutions = DBL_MIN;
     summary.lambda_max_on_wrong_solutions = DBL_MIN;
     int tot_tests = results.size();
-    printf("tot_tests = %d\n", tot_tests);
     for(int i = 0; i<tot_tests; i++){
         summary.correct_ratio += results[i].correct_ratio/tot_tests;
         summary.unfinished_ratio += results[i].unfinished_ratio/tot_tests;
