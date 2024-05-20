@@ -28,8 +28,8 @@ CUDA_FILE=$2
 # Check if we used the keyword all, compile or profile
 if [ $COMMAND == "all" ]; then
     # Compile and profile
-    echo "Compiling and executing CUDA program $CUDA_FILE"
-    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    echo "Compiling and executing CUDA program $CUDA_FILE" 
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE 
     ./exe
     exit 0
 elif [ $COMMAND == "compile" ]; then

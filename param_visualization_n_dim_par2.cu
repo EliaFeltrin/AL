@@ -15,7 +15,7 @@
 #include <random>
 #include <unordered_set>
 
-#include "AL_test.h"
+#include "AL_test.cu"
 
 
 double MAX_MU = DBL_MAX;
@@ -465,8 +465,8 @@ int main(int argc, char** argv) {
         printf("\tmean mu = %.1f\tmean AL attempts = %.1f\n", summary.mean_mu_on_wrong_solutions, summary.mean_al_attempts_on_wrong_solutions);
     }
 
-    finalize(results);
-    finalize(summary);
+    //finalize(results);
+    //finalize(summary);
 
 }
 
