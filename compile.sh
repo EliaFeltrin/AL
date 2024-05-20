@@ -20,7 +20,13 @@ PROFILER=nvprof
 
 
 # Exec flags
-EXEC_FLAGS="-mN 10 -MN 10 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 300 -r 0.1 -PCRl 0.3,2,0,1 -f -c"
+#-s strong verbose
+# -f final stampa solo la media di tutto, senza ti mostra tutte le combinazioni di M e N
+#PCRb prob,b con Q diagoanle identità
+#PCRl prob,b,lower,upper con Q diagonale
+#PCRq prob,b,lower,upper con Q triang sup
+
+EXEC_FLAGS="-mN 10 -MN 10 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.001 -PCRb 0.5,2 -c -s"
 
 # Requested command
 COMMAND=$1

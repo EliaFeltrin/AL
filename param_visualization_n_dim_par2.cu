@@ -1343,32 +1343,53 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
         CHECK(cudaMemcpy(b_gpu, b_lin, M * sizeof(b_Type), cudaMemcpyHostToDevice));
 
 
-        dim3 threads_per_block(N_THREADS);
-	    dim3 blocks_per_grid(pow(2,N)/N_THREADS);          ///RICORDATI DI PARAMETRIZZARE QUESTA ROBA PER N DIVERSI
+        int n_threads = min(N_THREADS, (int)pow(2,N));
+        dim3 threads_per_block(n_threads);
+	    dim3 blocks_per_grid(pow(2,N)/n_threads);          ///RICORDATI DI PARAMETRIZZARE QUESTA ROBA PER N DIVERSI
 
 
+        //brute force to find the minimum
         brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
+        //copy back and print feasible gpu and fx gpu
+        bool* feasible = new bool[(int)pow(2,N)];
+        fx_Type* fx = new fx_Type[(int)pow(2,N)];
+        CHECK(cudaMemcpy(feasible, feasible_gpu, pow(2,N) * sizeof(bool), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpy(fx, fx_gpu, pow(2,N) * sizeof(fx_Type), cudaMemcpyDeviceToHost));
 
+        
+        //printf("solutions:\n");
+        //for(int i = 0; i < pow(2,N); i++){
+        //    if(feasible[i]){
+        //        printf("x = [%d] ", i);
+        //        printf("] with value %.1f\n", fx[i]);
+        //    }
+        //}
+        
+
+
+        //reduce to find the minimum between the feasible solutions
         reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
-
         CHECK_KERNELCALL();
-	    CHECK(cudaDeviceSynchronize());
+        
+        reduce_max_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_max_gpu); //ACTUALLY NON SERVE è SEMPRE 11111111111...
+        CHECK_KERNELCALL();
+        CHECK(cudaDeviceSynchronize());
 
-        //TO DO: da fare reduce_max_feasible pere valcolare true_max_val e quindi gli errori
 
         int true_min_x_dec;
         CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(double), cudaMemcpyDeviceToHost));
         CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(int), cudaMemcpyDeviceToHost));
-
+        
+        CHECK(cudaMemcpy(&true_max_val, fx_max_gpu, sizeof(double), cudaMemcpyDeviceToHost));
         
 
-
         for(int i = 0; i< N; i++){
-            expected_min_x[i][0] = (true_min_x_dec >> i) & 0b1;
+            expected_min_x[i][0] = (true_min_x_dec >> i) & 1;
         }
+
 
         if(strong_verbose){
             printf("Expected minimum found in x = [ ");
@@ -1378,13 +1399,7 @@ int test_at_dimension(int N, int M, int MAXITER, int N_AL_ATTEMPTS, double initi
             printf("] with value %.1f\n", true_min_val);
         }
 
-        true_max_val = 100000;                                          //TO DO: calcolare il vero massimo
-        reduce_max_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_max_gpu);
-        CHECK_KERNELCALL();
-        CHECK(cudaDeviceSynchronize());
-
-        CHECK(cudaMemcpy(&true_max_val, fx_max_gpu, sizeof(double), cudaMemcpyDeviceToHost));
-
+        
         /*//NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
         if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
             iter--;
