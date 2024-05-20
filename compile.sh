@@ -12,11 +12,15 @@ fi
 # Compiler
 COMPILER=nvcc
 # Flags for nvcc
-COMPILER_FLAGS="-arch=sm_61 -o exe"
+COMPILER_FLAGS="-arch=sm_61 -G -g -o exe"
 
 
 # Profiler
 PROFILER=nvprof
+
+
+# Exec flags
+EXEC_FLAGS="-mN 10 -MN 10 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 300 -r 0.1 -PCRl 0.3,2,0,1 -f -c"
 
 # Requested command
 COMMAND=$1
@@ -30,7 +34,7 @@ if [ $COMMAND == "all" ]; then
     # Compile and profile
     echo "Compiling and executing CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    ./exe
+    ./exe $EXEC_FLAGS
     exit 0
 elif [ $COMMAND == "compile" ]; then
     # Compile only
@@ -41,7 +45,13 @@ elif [ $COMMAND == "profile" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    $PROFILER ./exe
+    $PROFILER ./exe $EXEC_FLAGS
+    exit 0
+elif [ $COMMAND == "debug" ]; then
+    # Run only
+    echo "Debugging CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    cuda-gdb --args ./exe $EXEC_FLAGS
     exit 0
 else
     echo "Usage: $0 <all|compile|profile> <CUDA_SOURCE_FILE>"
