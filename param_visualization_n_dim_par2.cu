@@ -233,6 +233,11 @@ int main(int argc, char** argv) {
         }
     }
 
+    if(MIN_N < -PARAM_1_b){
+        printf("ERROR: unfeasible problem. N must be >= b\n");
+        exit(EXIT_FAILURE);
+    }
+
     initial_mu < 1 &&  update_mu == update_mu_exp ? atof(optarg+2) : printf("WARNING: mu must be >= 1 when using exponential update of mu. Default value 1 will be used.\n"), initial_mu = 1;
     rho <= 1 && update_mu == update_mu_exp? atof(optarg) : printf("WARNING: rho must be > 1 when using exponential update of mu. Default value 1.1 will be used.\n"), initial_mu = 1;
 
