@@ -329,7 +329,6 @@ int main(int argc, char** argv) {
 
     //initialize vector of results to the size of the number of tests
     std::vector<test_results> results = std::vector<test_results>((max_n - MIN_N + 1) * (max_m - MIN_M + 1));
-    bool terminate = false;
 
     for(dim_Type n = MIN_N; n <= max_n; n++){
         for(dim_Type m = MIN_M; m <= max_m; m++){
@@ -338,7 +337,6 @@ int main(int argc, char** argv) {
 
             if( 0 == test_at_dimension(n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
                 finalize(results);
-                terminate = true;
             }
             if(!only_final_report){
                 printf("\nN = %d\t M = %d\n", current_results.N, current_results.M);

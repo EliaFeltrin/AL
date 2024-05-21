@@ -184,8 +184,12 @@ void print_file_stdout(FILE *file, const char *format, ...);
 //NB: viene memorizzata solo la diagonale, pertanto Q è di lunghezza N
 void fill_Q_diag_lin(Q_Type* Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbund){
     Q_Type RAND_MAX_ = (Q_Type)RAND_MAX;
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
     for(dim_Type i = 0; i < N; i++){
-        Q[i*N+i] = lowerbound + (upperbund-lowerbound)*((Q_Type)rand()/RAND_MAX_);
+        Q[i] = lowerbound + (upperbund-lowerbound)*((Q_Type)g()/RAND_MAX_);
     }
 }
 
