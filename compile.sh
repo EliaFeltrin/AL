@@ -9,13 +9,15 @@ fi
 # Compiler
 COMPILER=nvcc
 # Flags for nvcc
-COMPILER_FLAGS="-arch=sm_61 -G -g -o exe"
+COMPILER_FLAGS="-arch=sm_61 -g -lineinfo -o exe"
 
 
 # Profiler
 PROFILER=nvprof
 
-
+PROFILER_FLAGS="--print-gpu-trace --print-api-trace "
+PROFILER_EVENTS="--events all "
+PROFILER_METRICS="--metrics all "
 # Exec flags
 #-s strong verbose
 # -f final stampa solo la media di tutto, senza ti mostra tutte le combinazioni di M e N
@@ -23,7 +25,7 @@ PROFILER=nvprof
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 15 -MN 15 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 10000 -r 0.1 -PCRl 0.01,1,0,1 -c"
+EXEC_FLAGS="-mN 15 -MN 15 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRl 0.01,1,0,1 -c"
 
 # Requested command
 COMMAND=$1
@@ -48,7 +50,19 @@ elif [ $COMMAND == "profile" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    $PROFILER ./exe $EXEC_FLAGS
+    $PROFILER $PROFILER_FLAGS ./exe $EXEC_FLAGS
+    exit 0
+elif [ $COMMAND == "profileEvents" ]; then
+    # Profile only
+    echo "Compiling and profiling CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    sudo $PROFILER $PROFILER_EVENTS ./exe $EXEC_FLAGS
+    exit 0
+elif [ $COMMAND == "profileMetrics" ]; then
+    # Profile only
+    echo "Compiling and profiling CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    sudo $PROFILER $PROFILER_METRICS ./exe $EXEC_FLAGS
     exit 0
 elif [ $COMMAND == "debug" ]; then
     # Run only
