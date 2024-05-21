@@ -237,6 +237,12 @@ int main(int argc, char** argv) {
     rho <= 1 && update_mu == update_mu_exp? atof(optarg) : printf("WARNING: rho must be > 1 when using exponential update of mu. Default value 1.1 will be used.\n"), initial_mu = 1;
 
 
+    if(PARAM_1_A < (float)PARAM_1_b / MIN_N){
+        PARAM_1_A = (float)PARAM_1_b / MIN_N;
+        printf("ERROR: probability to low to ensure a feasible problem. -1's probability will be set to %.1f to satisfy unequalities.\n", PARAM_1_A);        
+    }
+
+
     MAX_N = MAX_N < MIN_N ? MIN_N : MAX_N;
     MAX_M = MAX_M < MIN_M ? MIN_M : MAX_M;
 
