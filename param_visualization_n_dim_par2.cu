@@ -238,8 +238,14 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    initial_mu < 1 &&  update_mu == update_mu_exp ? atof(optarg+2) : printf("WARNING: mu must be >= 1 when using exponential update of mu. Default value 1 will be used.\n"), initial_mu = 1;
-    rho <= 1 && update_mu == update_mu_exp? atof(optarg) : printf("WARNING: rho must be > 1 when using exponential update of mu. Default value 1.1 will be used.\n"), initial_mu = 1;
+    if(initial_mu < 1 &&  update_mu == update_mu_exp){
+        printf("WARNING: mu must be >= 1 when using exponential update of mu. Default value 1 will be used.\n");
+        initial_mu = 1;
+    }
+    if(rho <= 1 && update_mu == update_mu_exp){
+        printf("WARNING: rho must be > 1 when using exponential update of mu. Default value 1.1 will be used.\n");
+        initial_mu = 1;
+    }
 
 
     if(PARAM_1_A < (float)(-PARAM_1_b) / MIN_N){
@@ -280,8 +286,8 @@ int main(int argc, char** argv) {
     print_file_stdout(file, "%d <= M <= %d\n", MIN_M, MAX_M);
     print_file_stdout(file, "b = %f\n", PARAM_1_b);
     print_file_stdout(file, "# problems for each combination of N and M = %d\n", MAXITER);
-    print_file_stdout(file, "Initial mu = %.1f\n", initial_mu);
-    print_file_stdout(file, "rho = %.1f\n", rho);
+    print_file_stdout(file, "Initial mu = %f\n", initial_mu);
+    print_file_stdout(file, "rho = %f\n", rho);
     print_file_stdout(file, "Initial lambda = %.1f\n", initial_lambda);
     print_file_stdout(file, "Maximum number of AL attempts (if 'PARAM_2_Al_attempts' selected) = %d\n", N_AL_ATTEMPTS);
     print_file_stdout(file, "Maximum value of mu (if 'max_mu' selected) = "); MAX_MU == DBL_MAX ? print_file_stdout(file, "MAX DOUBLE\n") : print_file_stdout(file, "%.1f\n", MAX_MU);

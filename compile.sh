@@ -23,7 +23,7 @@ PROFILER=nvprof
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 12 -MN 12 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.001 -PCRq 0.3,2,0,1 -c -s"
+EXEC_FLAGS="-mN 15 -MN 15 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 10000 -r 0.1 -PCRl 0.01,1,0,1 -c"
 
 # Requested command
 COMMAND=$1
@@ -55,6 +55,12 @@ elif [ $COMMAND == "debug" ]; then
     echo "Debugging CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
     cuda-gdb --args ./exe $EXEC_FLAGS
+    exit 0
+elif [ $COMMAND == "run" ]; then
+    # Run only
+    clear
+    echo "Running CUDA program $CUDA_FILE"
+    ./exe $EXEC_FLAGS
     exit 0
 else
     echo "Usage: $0 <all|compile|profile> <CUDA_SOURCE_FILE>"

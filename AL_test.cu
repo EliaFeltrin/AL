@@ -203,28 +203,27 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 //NB: non vengono memorizzati gli zeri della matrice triangolare inferiore
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
     const unsigned int Q_len = N*(N+1)/2;
-
+    std::cout << "Q_len = " << Q_len << std::endl;
     std::random_device rd;
     std::mt19937 g(rd());
 
-    for(dim_Type i = 0; i < Q_len; i++){
+    for(unsigned int i = 0; i < Q_len; i++){
         Q[i] = lowerbound + (upperbound-lowerbound)*((Q_Type)g()/g.max());
     }
 }
 
 void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float one_probability, const b_Type b_){
-    
     b_Type b = -b_;
-    
-    int Mxb = (M*b);
 
+    int Mxb = (M*b);
     
     for(int i = 0; i < Mxb; i++){
         A[i] = (A_Type)-1;
     }
 
-    const unsigned int n_missing_ones = (int)(M * N * one_probability) - M * b;
+    const unsigned int n_missing_ones = (unsigned int)(M * N * one_probability - M * b);
     
+
     const unsigned int aux_vec_len = M * (N - b); 
     std::vector<A_Type> aux_vec(aux_vec_len, (A_Type)0);
     
@@ -285,7 +284,7 @@ void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Ty
     if(!Q_DIAG){
         for(dim_Type i = 0; i < N; i++){
             for(dim_Type j = i; j < N; j++){
-                dim_Type triang_idx = triang_index(i,j,N);
+                unsigned int triang_idx = triang_index(i,j,N);
                 Q_plus_AT_A[triang_idx] = 0;
                 for(dim_Type k = 0; k < M; k++){
                     Q_plus_AT_A[triang_idx] += A[k+i*M] * A[k+j*M];
@@ -299,7 +298,7 @@ void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Ty
     } else if(!Q_ID){
         for(dim_Type i = 0; i < N; i++){
             for(dim_Type j = i; j < N; j++){
-                dim_Type triang_idx = triang_index(i,j,N);
+                unsigned int triang_idx = triang_index(i,j,N);
                 Q_plus_AT_A[triang_idx] = 0;
                 for(dim_Type k = 0; k < M; k++){
                     Q_plus_AT_A[triang_idx] += A[k+i*M] * A[k+j*M];
@@ -313,7 +312,7 @@ void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Ty
     } else {
        for(dim_Type i = 0; i < N; i++){
             for(dim_Type j = i; j < N; j++){
-                dim_Type triang_idx = triang_index(i,j,N);
+                unsigned int triang_idx = triang_index(i,j,N);
                 Q_plus_AT_A[triang_idx] = 0;
                 for(dim_Type k = 0; k < M; k++){
                     Q_plus_AT_A[triang_idx] += A[k+i*M] * A[k+j*M];
@@ -413,7 +412,7 @@ inline Q_Type compute_max(const Q_Type* __restrict__ Q, dim_Type N){
         }
     } else {
         unsigned int Q_len = N*(N+1)/2;
-        for(dim_Type i = 0; i < Q_len; i++){
+        for(unsigned int i = 0; i < Q_len; i++){
             res += Q[i];
         }
     }
@@ -452,14 +451,14 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
     double true_max_val, true_min_val, al_min_val;
 
-    double mu;
-    double old_mu;
-    double mean_lambda_on_correct_solutions       = 0,    mean_mu_on_correct_solutions      = 0;
-    double mean_lambda_on_unfinished_solutions    = 0,    mean_mu_on_unfinished_solutions   = 0;
-    double mean_lambda_on_wrong_solutions         = 0,    mean_mu_on_wrong_solutions        = 0;
-    double lambda_min_on_correct_solutions        = DBL_MAX,  lambda_max_on_correct_solutions       = DBL_MIN;     
-    double lambda_min_on_unfinished_solutions     = DBL_MAX,  lambda_max_on_unfinished_solutions    = DBL_MIN; 
-    double lambda_min_on_wrong_solutions          = DBL_MAX,  lambda_max_on_wrong_solutions         = DBL_MIN; 
+    mu_Type mu;
+    mu_Type old_mu;
+    lambda_Type mean_lambda_on_correct_solutions       = 0,    mean_mu_on_correct_solutions      = 0;
+    lambda_Type mean_lambda_on_unfinished_solutions    = 0,    mean_mu_on_unfinished_solutions   = 0;
+    lambda_Type mean_lambda_on_wrong_solutions         = 0,    mean_mu_on_wrong_solutions        = 0;
+    lambda_Type lambda_min_on_correct_solutions        = sizeof(lambda_Type) == sizeof(double) ? DBL_MAX : FLT_MAX,  lambda_max_on_correct_solutions       = sizeof(lambda_Type) == sizeof(double) ? -DBL_MAX : -FLT_MAX;     
+    lambda_Type lambda_min_on_unfinished_solutions     = sizeof(lambda_Type) == sizeof(double) ? DBL_MAX : FLT_MAX,  lambda_max_on_unfinished_solutions    = sizeof(lambda_Type) == sizeof(double) ? -DBL_MAX : -FLT_MAX; 
+    lambda_Type lambda_min_on_wrong_solutions          = sizeof(lambda_Type) == sizeof(double) ? DBL_MAX : FLT_MAX,  lambda_max_on_wrong_solutions         = sizeof(lambda_Type) == sizeof(double) ? -DBL_MAX : -FLT_MAX; 
     double mean_al_attempts_on_correct_solutions     = 0;
     double mean_al_attempts_on_wrong_solutions       = 0;
     double mean_al_attempts_on_unfinished_solutions  = 0;   
@@ -476,8 +475,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     Q_Type*     Q_gpu; //input
     b_Type*     b_gpu; //input
     
-    bool*       x_bin_buffer_gpu; //buffer
-    b_Type*     Ax_b_buffer_gpu;  //buffer
+    //bool*       x_bin_buffer_gpu; //buffer
+    //b_Type*     Ax_b_buffer_gpu;  //buffer
 
     bool*       feasible_gpu; //output /input
     fx_Type*    fx_gpu; // output / input
@@ -488,11 +487,11 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     fx_Type*    fx_max_gpu; //output
 
     CHECK(cudaMalloc(&A_gpu, A_len * sizeof(A_Type)));
-    CHECK(cudaMalloc(&Q_gpu, Q_len * sizeof(Q_Type)));
+    CHECK(cudaMalloc(&Q_gpu, N*(N+1)/2 * sizeof(Q_Type))); //NON È Q_LEN PERCHÈ Q' È SEMPRE TRIANGOLARE SUPERIORE E PER Q BASTA COSÌ O MENO    
     CHECK(cudaMalloc(&b_gpu, M * sizeof(b_Type)));
 
-    CHECK(cudaMalloc(&x_bin_buffer_gpu, N * sizeof(bool) * pow(2,N))); //for each thread (thus each x) a buffer of N bools
-    CHECK(cudaMalloc(&Ax_b_buffer_gpu, M * sizeof(b_Type) * pow(2,N))); //for each thread (thus each x) a buffer of M b_Type
+    // CHECK(cudaMalloc(&x_bin_buffer_gpu, N * sizeof(bool) * pow(2,N))); //for each thread (thus each x) a buffer of N bools
+    // CHECK(cudaMalloc(&Ax_b_buffer_gpu, M * sizeof(b_Type) * pow(2,N))); //for each thread (thus each x) a buffer of M b_Type
 
     CHECK(cudaMalloc(&feasible_gpu, pow(2,N) * sizeof(bool)));
     CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
@@ -510,6 +509,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         fill_A(A, M, N, one_prob, b_val);
         fill_b(b, M, b_val);
 
+
         if(verbose || strong_verbose){
             printf("-------------------------------------------------------------\n");
             //print Q, A, b
@@ -517,6 +517,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             print_A(A, M, N);
             print_b(b, M);
         }
+
 
         mu = initial_mu;
         fill_lambda_lin(lambda, M, initial_lambda, 0);
@@ -529,13 +530,14 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         CHECK(cudaMemcpy(b_gpu, b, M * sizeof(b_Type), cudaMemcpyHostToDevice));
 
 
-
         int n_threads = min(N_THREADS, (int)pow(2,N));
         dim3 threads_per_block(n_threads);
-	    dim3 blocks_per_grid(pow(2,N)/n_threads);          
+	    dim3 blocks_per_grid(pow(2,N)/n_threads);   
+
         
         //ADD Q_DIAG e Q_ID
-        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
+        //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
+        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, feasible_gpu, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
@@ -545,7 +547,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 	    CHECK(cudaDeviceSynchronize());
 
 
-        int true_min_x_dec;
+        unsigned int true_min_x_dec;
         CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
         CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));
 
@@ -558,39 +560,91 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             for(int i = 0; i < N; i++){
                 printf("%d ", expected_min_x[i]);
             }
-            printf("] with value %.1f\n", true_min_val);
+            printf("] with value %.1f\n\n", true_min_val);
         }
 
         true_max_val = compute_max(Q, N);                                          //TO DO: calcolare il vero massimo
-
         /*//NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
         if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
             iter--;
             continue;
         }*/
 
-        int i = 0;
+        int attempt = 0;
         bool ok;
         bool al_condition;
         
         Q_Type Q_plus_AT_A[N*(N+1)/2];
         compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_plus_AT_A, M, N);
-
         do{
 
             if(strong_verbose){
-                printf("AL attempt %d\tmu = %.5f\tlambda^T = [ ", i, mu);
+                printf("AL attempt %d\tmu = %.5f\tlambda^T = [ ", attempt, mu);
+                for(dim_Type idx = 0; idx < M; idx++){
+                    printf("%.1f ", lambda[idx]);
+                }
+                printf("]\n");
             }
             
-            ok = true;
+            
 
-            printf("DOVRESTI PRIMA SCRIVERE IL KERNEL PER AL. Ti faccio un iterazione di test a vuoto\n");
+            //printf("DOVRESTI PRIMA SCRIVERE IL KERNEL PER AL. Ti faccio un iterazione di test a vuoto\n");
+
+
+            
+            //devo calcolare Q' = Q + A^T A + diag((lambda - mu b)^T A)
+            //calcolo lambda - bu*b
+            lambda_Type lambda_mu_b[M];
+            for(dim_Type j = 0; j < M; j++){
+                lambda_mu_b[j] = lambda[j] - mu * b[j];
+            }
+
+            //calcolo lambda_mu_b^T * A
+            lambda_Type lambda_mu_b_A[N];
+            for(dim_Type i = 0; i < N; i++){
+                lambda_mu_b_A[i] = 0;
+                for(dim_Type j = 0; j < M; j++){
+                    lambda_mu_b_A[i] += lambda_mu_b[j] * A[j+i*M];
+                }
+            }
+
+            //calcolo Q'
+            for(dim_Type i = 0; i < N; i++){
+                Q_plus_AT_A[triang_index(i,i,N)] += lambda_mu_b_A[i]; 
+            }
+
+            //copy Q_plus_AT_A to GPU
+            CHECK(cudaMemcpy(Q_gpu, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), cudaMemcpyHostToDevice));
+
+
+            brute_force_AL<<<blocks_per_grid, threads_per_block>>>(Q_gpu, N, fx_gpu);
+            CHECK_KERNELCALL();
+            CHECK(cudaDeviceSynchronize());
+
+            reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, fx_min_gpu, x_min_gpu);
+            CHECK_KERNELCALL();
+            CHECK(cudaDeviceSynchronize());
+
+            unsigned int true_min_x_dec;
+            CHECK(cudaMemcpy(&al_min_val, fx_min_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
+            CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));            
+
+            for(int i = 0; i < N; i++){
+                min_x[i] = (true_min_x_dec >> i) & 1;
+            }
+
+
+            //CALCOLO c(x_ottimo) = A x_ottimo - b
+            for(dim_Type i = 0; i < M; i++){
+                c[i] = -b[i];
+                for(dim_Type j = 0; j < N; j++){
+                    c[i] += A[i+j*M] * min_x[j];
+                }
+            }
+
             
             if(strong_verbose){
-                for(int i = 0; i < M; i++){
-                    printf("%.5f ", lambda[i]);
-                }
-                printf("]\tc_x_opt^T = [ ");
+                printf("c_x_opt^T = [ ");
                 for(int i = 0; i < M; i++){
                     printf("%.5f ", c[i]);
                 }
@@ -606,7 +660,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             }
             old_mu = mu;
             
-
+            ok = true;
             for(dim_Type j = 0; j < M; j++){
                 if(c[j] > 0){
                     lambda[j] = lambda[j] + mu * c[j];               //ORIGINALEEEEEE
@@ -616,13 +670,13 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 }
             }
 
-            i++;
+            attempt++;
 
             mu = update_mu(mu, rho);
 
-            al_condition = al_end_condition(i, N_AL_ATTEMPTS, N, M, lambda, mu, c);
+            al_condition = al_end_condition(attempt, N_AL_ATTEMPTS, N, M, lambda, mu, c);
 
-            if(i == 2) ok = true;           //TO DO: da togliere!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           
         } while (!ok && al_condition);
 
 
@@ -682,9 +736,9 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
         } else {
             if(ok){
-                printf("Problem solved in %d iterations\n", i);
+                printf("Problem solved in %d iterations\n", attempt);
             } else{
-                printf("Problem not solved in %d iterations\n", i);
+                printf("Problem not solved in %d iterations\n", attempt);
             }
 
             if(!strong_verbose){
@@ -702,7 +756,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
 
         if(correct){
-            mean_al_attempts_on_correct_solutions += i;
+            mean_al_attempts_on_correct_solutions += attempt;
             mean_mu_on_correct_solutions += old_mu;
             for(int j = 0; j < M; j++){
                 mean_lambda_on_correct_solutions += old_lambda[j]/M;
@@ -713,7 +767,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             }
         }
         else if(unfinished){
-            mean_al_attempts_on_unfinished_solutions += i;
+            mean_al_attempts_on_unfinished_solutions += attempt;
             mean_mu_on_unfinished_solutions += old_mu;
             for(int j = 0; j < M; j++){
                 mean_lambda_on_unfinished_solutions += old_lambda[j]/M;
@@ -724,7 +778,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             }
         }
         else if(wrong){
-            mean_al_attempts_on_wrong_solutions += i;
+            mean_al_attempts_on_wrong_solutions += attempt;
             mean_mu_on_wrong_solutions += old_mu;
             for(int j = 0; j < M; j++){
                 mean_lambda_on_wrong_solutions += old_lambda[j]/M;
@@ -784,8 +838,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     CHECK(cudaFree(Q_gpu));
     CHECK(cudaFree(b_gpu));
     
-    CHECK(cudaFree(x_bin_buffer_gpu));
-    CHECK(cudaFree(Ax_b_buffer_gpu));
+    // CHECK(cudaFree(x_bin_buffer_gpu));
+    // CHECK(cudaFree(Ax_b_buffer_gpu));
 
     CHECK(cudaFree(feasible_gpu));
     CHECK(cudaFree(fx_gpu));
