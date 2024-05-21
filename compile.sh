@@ -23,7 +23,7 @@ PROFILER=nvprof
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 10 -MN 10 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.001 -PCRb 0.5,2 -c -s"
+EXEC_FLAGS="-mN 12 -MN 12 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.001 -PCRq 0.3,2,0,1 -c -s"
 
 # Requested command
 COMMAND=$1

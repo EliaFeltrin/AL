@@ -19,6 +19,7 @@
 #include <random>
 #include <unordered_set>
 #include <cuda_runtime.h>
+#include <iostream>
 
 #include "types.h"
 #include "kernels.cu"
@@ -128,7 +129,7 @@ void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_
 /*--------------------------------------- INDEX CONVERTION FUNCTIONS ------------------------------ */
 
 inline unsigned int triang_index(dim_Type i, dim_Type j, dim_Type N){
-    return (unsigned int)(i * (N - 0.5f) - i*i/2.0f + j);
+    return (unsigned int)(i * (N - 0.5f) - i * i/2.0f + j);
 }
 
 /*--------------------------------------- HALT CONDITION FUNCTIONS -------------------------------- */
@@ -183,13 +184,11 @@ void print_file_stdout(FILE *file, const char *format, ...);
 
 //NB: viene memorizzata solo la diagonale, pertanto Q è di lunghezza N
 void fill_Q_diag_lin(Q_Type* Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbund){
-    Q_Type RAND_MAX_ = (Q_Type)RAND_MAX;
-
     std::random_device rd;
     std::mt19937 g(rd());
 
     for(dim_Type i = 0; i < N; i++){
-        Q[i] = lowerbound + (upperbund-lowerbound)*((Q_Type)g()/RAND_MAX_);
+        Q[i] = lowerbound + (upperbund-lowerbound)*((Q_Type)g()/g.max());
     }
 }
 
@@ -203,38 +202,42 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 
 //NB: non vengono memorizzati gli zeri della matrice triangolare inferiore
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
-    Q_Type RAND_MAX_ = (Q_Type)RAND_MAX;
     const unsigned int Q_len = N*(N+1)/2;
 
     std::random_device rd;
     std::mt19937 g(rd());
 
     for(dim_Type i = 0; i < Q_len; i++){
-        Q[i] = lowerbound + (upperbound-lowerbound)*((Q_Type)g()/RAND_MAX_);
+        Q[i] = lowerbound + (upperbound-lowerbound)*((Q_Type)g()/g.max());
     }
 }
 
-void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float one_probability, const b_Type b){
+void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float one_probability, const b_Type b_){
     
-    A_Type aux_vec[(int)(M * (N - b))] = {(A_Type)0};
+    b_Type b = -b_;
     
-    for(dim_Type i = 0; i < M; i++){
-        for(dim_Type j = 0; j < b; j++){
-            A[i+j*M] = -1;
-        }
+    int Mxb = (M*b);
+
+    
+    for(int i = 0; i < Mxb; i++){
+        A[i] = (A_Type)-1;
     }
 
     const unsigned int n_missing_ones = (int)(M * N * one_probability) - M * b;
-
+    
+    const unsigned int aux_vec_len = M * (N - b); 
+    std::vector<A_Type> aux_vec(aux_vec_len, (A_Type)0);
+    
     for(int i = 0; i < n_missing_ones; i++){
         aux_vec[i] = -1;
     }
-
+    
     std::random_device rd;
     std::mt19937 g(rd());
+    
 
-    unsigned int aux_vec_len = M * (N - b); 
-    std::shuffle(aux_vec, aux_vec + aux_vec_len, g);
+    std::shuffle(aux_vec.begin(), aux_vec.end(), g);
+
 
     unsigned int c = 0;
     for(dim_Type i = 0; i < M; i++){
@@ -242,6 +245,19 @@ void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const
             A[i+j*M] = aux_vec[c++];
         }
     }
+
+    //shuffle content of each row
+    for(dim_Type i = 0; i < M; i++){
+        for(dim_Type j = 0; j < N; j++){
+            dim_Type rand_idx = g() % N;
+
+            //switch A[i][j] with A[i][rand_idx]
+            A_Type temp = A[i+j*M];
+            A[i+j*M] = A[i+rand_idx*M];
+            A[i+rand_idx*M] = temp;
+        }
+    }
+
 }
 
 
@@ -338,7 +354,10 @@ void print_Q(const Q_Type* Q, const dim_Type N){
     } else {
         for(dim_Type i = 0; i < N; i++){
             for(dim_Type j = 0; j < N; j++){
-                printf("%.1f ", Q[i*N+j]);
+                if(j < i)
+                    printf("%4.0f ",0.f);
+                else
+                    printf("%1.2f ", Q[triang_index(i,j,N)]);
             }
             printf("\n");
         }
@@ -412,7 +431,6 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                         test_results* results, bool verbose, bool strong_verbose)
 {
 
-    printf("N = %d\tM = %d\n", N, M);
     
     auto start = std::chrono::high_resolution_clock::now();
     const int progressBarWidth = 100;
@@ -515,10 +533,12 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         int n_threads = min(N_THREADS, (int)pow(2,N));
         dim3 threads_per_block(n_threads);
 	    dim3 blocks_per_grid(pow(2,N)/n_threads);          
-
-        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
+        
+        //ADD Q_DIAG e Q_ID
+        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
+
 
         reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
         CHECK_KERNELCALL();
@@ -526,8 +546,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
 
         int true_min_x_dec;
-        CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(double), cudaMemcpyDeviceToHost));
-        CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(int), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));
 
         for(int i = 0; i < N; i++){
             expected_min_x[i] = (true_min_x_dec >> i) & 1;
@@ -536,7 +556,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         if(strong_verbose){
             printf("Expected minimum found in x = [ ");
             for(int i = 0; i < N; i++){
-                printf("%.0f ", expected_min_x[i]);
+                printf("%d ", expected_min_x[i]);
             }
             printf("] with value %.1f\n", true_min_val);
         }
@@ -576,7 +596,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 }
                 printf("]\tx_opt = [ ");
                 for(int i = 0; i < N; i++){
-                    printf("%.0f ", min_x[i]);
+                    printf("%d ", min_x[i]);
                 }
                 printf("]\tmin_val = %.1f\n", al_min_val);
             }

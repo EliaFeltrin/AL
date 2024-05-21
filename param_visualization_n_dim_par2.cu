@@ -267,6 +267,7 @@ int main(int argc, char** argv) {
     print_file_stdout(file, "Test parameters:\n");
     print_file_stdout(file, "%d <= N <= %d\n", MIN_N, MAX_N);
     print_file_stdout(file, "%d <= M <= %d\n", MIN_M, MAX_M);
+    print_file_stdout(file, "b = %f\n", PARAM_1_b);
     print_file_stdout(file, "# problems for each combination of N and M = %d\n", MAXITER);
     print_file_stdout(file, "Initial mu = %.1f\n", initial_mu);
     print_file_stdout(file, "rho = %.1f\n", rho);
@@ -334,7 +335,6 @@ int main(int argc, char** argv) {
         for(dim_Type m = MIN_M; m <= max_m; m++){
 
             test_results current_results;
-
             if( 0 == test_at_dimension(n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
                 finalize(results);
             }
