@@ -17,6 +17,8 @@
 
 #include "AL_test.cu"
 
+//TODO: RIMUOVERE MAX, BASTA X = 1_N
+
 
 double MAX_MU = DBL_MAX;
 double MAX_LAMBDA = DBL_MAX;
@@ -322,7 +324,6 @@ int main(int argc, char** argv) {
     }
 
 
-    
     int max_n = (MAX_N >= MIN_N ? MAX_N : MIN_N);
     int max_m = (MAX_M >= MIN_M ? MAX_M : MIN_M);
 
@@ -365,12 +366,12 @@ int main(int argc, char** argv) {
 
 
     test_results summary = {};
-    summary.lambda_min_on_correct_solutions = DBL_MAX;
-    summary.lambda_min_on_unfinished_solutions = DBL_MAX;
-    summary.lambda_min_on_wrong_solutions = DBL_MAX;
-    summary.lambda_max_on_correct_solutions = DBL_MIN;
-    summary.lambda_max_on_unfinished_solutions = DBL_MIN;
-    summary.lambda_max_on_wrong_solutions = DBL_MIN;
+    summary.lambda_min_on_correct_solutions     = sizeof(lambda_Type) == sizeof(double) ?  DBL_MAX  : FLT_MAX;
+    summary.lambda_min_on_unfinished_solutions  = sizeof(lambda_Type) == sizeof(double) ?  DBL_MAX  : FLT_MAX;
+    summary.lambda_min_on_wrong_solutions       = sizeof(lambda_Type) == sizeof(double) ?  DBL_MAX  : FLT_MAX;
+    summary.lambda_max_on_correct_solutions     = sizeof(lambda_Type) == sizeof(double) ?  DBL_MIN  : FLT_MIN;
+    summary.lambda_max_on_unfinished_solutions  = sizeof(lambda_Type) == sizeof(double) ?  DBL_MIN  : FLT_MIN;
+    summary.lambda_max_on_wrong_solutions       = sizeof(lambda_Type) == sizeof(double) ?  DBL_MIN  : FLT_MIN;
     int tot_tests = results.size();
     for(int i = 0; i<tot_tests; i++){
         summary.correct_ratio += results[i].correct_ratio/tot_tests;

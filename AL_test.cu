@@ -127,8 +127,8 @@ void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_
 
 /*--------------------------------------- INDEX CONVERTION FUNCTIONS ------------------------------ */
 
-inline dim_Type triang_index(dim_Type i, dim_Type j, dim_Type N){
-    return i * (N - 0.5) - i*i/2 + j;
+inline unsigned int triang_index(dim_Type i, dim_Type j, dim_Type N){
+    return (unsigned int)(i * (N - 0.5f) - i*i/2.0f + j);
 }
 
 /*--------------------------------------- HALT CONDITION FUNCTIONS -------------------------------- */
@@ -200,10 +200,13 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 //NB: non vengono memorizzati gli zeri della matrice triangolare inferiore
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
     Q_Type RAND_MAX_ = (Q_Type)RAND_MAX;
-    for(dim_Type i = 0; i < N; i++){
-        for(dim_Type j = i; j < N; j++){
-            Q[i*N+j] = lowerbound + (upperbound-lowerbound)*((Q_Type)rand()/RAND_MAX_);
-        }
+    const unsigned int Q_len = N*(N+1)/2;
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    for(dim_Type i = 0; i < Q_len; i++){
+        Q[i] = lowerbound + (upperbound-lowerbound)*((Q_Type)g()/RAND_MAX_);
     }
 }
 
@@ -377,7 +380,7 @@ Q_Type compute_xQx(const Q_Type* __restrict__ Q, const bool* __restrict__ x, dim
     return res;
 };
 
-Q_Type compute_max(const Q_Type* __restrict__ Q, dim_Type N){
+inline Q_Type compute_max(const Q_Type* __restrict__ Q, dim_Type N){
     Q_Type res = 0;
     if(Q_ID){
         return N;
@@ -522,7 +525,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(double), cudaMemcpyDeviceToHost));
         CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(int), cudaMemcpyDeviceToHost));
 
-        for(int i = 0; i< N; i++){
+        for(int i = 0; i < N; i++){
             expected_min_x[i] = (true_min_x_dec >> i) & 1;
         }
 
