@@ -15,7 +15,8 @@ COMPILER_FLAGS="-arch=sm_61 -g -lineinfo --expt-relaxed-constexpr -o exe"
 # Profiler
 PROFILER=nvprof
 
-PROFILER_FLAGS="--print-gpu-trace --print-api-trace "
+# Profiler flags
+PROFILER_TRACE="--print-gpu-trace --print-api-trace "
 PROFILER_EVENTS="--events all "
 PROFILER_METRICS="--metrics all "
 # Exec flags
@@ -25,13 +26,13 @@ PROFILER_METRICS="--metrics all "
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 12 -MN 12 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRq 0.3,2,1,2 -c -s"
+EXEC_FLAGS="-mN 18 -MN 18 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 100 -r 0.1 -PCRq 0.3,2,1,2 -c -f"
 
 # Requested command
 COMMAND=$1
 
 # CUDA source file
-CUDA_FILE=$2
+CUDA_FILE=" param_visualization_n_dim_par2.cu"
 
 
 # Check if we used the keyword all, compile or profile
@@ -47,6 +48,12 @@ elif [ $COMMAND == "compile" ]; then
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
     exit 0
 elif [ $COMMAND == "profile" ]; then
+    # Profile only
+    echo "Compiling and profiling CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $CUDA_FILE
+    $PROFILER ./exe $EXEC_FLAGS
+    exit 0
+elif [ $COMMAND == "profileTrace" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
