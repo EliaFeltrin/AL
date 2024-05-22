@@ -8,6 +8,8 @@
 
 
 #define N_THREADS 1024
+#define MAX_M_GPU 32
+#define X_BIN_MAX 32//sizeof(x_dec_Type) * 8
 
 __device__ volatile int sem = 0;
 
@@ -44,60 +46,66 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
                             bool* __restrict__ feasible, fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
-
-    bool x_bin[sizeof(x_dec_Type) * 8];// we might want to set a max N and max M and assign statically the memory as that value 
     
-    //bool* x_bin = all_x_bin + x * N;
+    // extern __shared__ char shared_mem[];
+    
+    // A_Type* A_shared = (A_Type*) shared_mem;
+    // Q_Type* Q_shared = (Q_Type*) (A_shared + M * N);
+
+    
+    
+    bool x_bin[X_BIN_MAX]; 
+    //bool* x_bin = all_x_bin + x * N; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER
+    
+    #pragma unroll
     for(dim_Type i = 0; i < N; i++){
         x_bin[i] = (x >> i) & 1;
     }
-    
-    double Ax_b[32];
-    //b_Type* Ax_b = all_Ax_b + x * M;
 
-    for(int i = 0; i < M; i++){
-        Ax_b[i] = 0;
-    }
 
+    double Ax_b[MAX_M_GPU] = {0};
+    //b_Type* Ax_b = all_Ax_b + x * M; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER
 
     bool is_feasible = true;
     //RISCRIVIAMO A*x - b facendo in modo che se x == 0 skippiamo i conti
+    #pragma unroll
     for(dim_Type i = 0; i < N; i++){
-        if(x_bin[i] == 0){
-            continue;
-        }
-        for(dim_Type j = 0; j < M; j++){
-            Ax_b[j] += A[j + i*M];
+        if(x_bin[i] != 0){
+            for(dim_Type j = 0; j < M; j++){
+                Ax_b[j] += A[j + i*M];
+            }    
         }
     } 
 
     //check if x is feasible
+    #pragma unroll
     for(dim_Type i = 0; i < M; i++){
         Ax_b[i] -= b[i];
         if(Ax_b[i] > 0){
             is_feasible = false;
+            break;
         }
     }
 
 
-    fx_Type fx = 0;
+    fx_Type fx = DBL_MAX;           ///SET A MACRO FOR DBL_MAX CHE DIPENDE DA fx_Type
     feasible[x] = is_feasible;
 
     if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
-        for(dim_Type i = 0; i < N; i++){
-            fx += Q[i] * x_bin[i];
+        if(is_feasible){
+            for(dim_Type i = 0; i < N; i++){
+                fx += Q[i] * x_bin[i];
+            }
         }
-
     }else{
         if(is_feasible){       
+            fx = 0;
             //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
             for(dim_Type i = 0; i < N; i++){
                 for(dim_Type j = i; j < N; j++){
                     fx += x_bin[i] * Q[i*N + j - i - i*(i-1)/2] * x_bin[j];
                 }
             }
-        }else{
-            fx = DBL_MAX;
         }
     }
     fx_vals[x] = fx;
@@ -203,7 +211,7 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, fx_Type* __restrict__
 
 
     if(threadIdx.x + blockIdx.x * blockDim.x == 0){
-        *min = DBL_MAX;
+        *min = DBL_MAX;                         ///SET A MACRO FOR DBL_MAX CHE DIPENDE DA fx_Type
     }
 
   	// Perform the reduction for each block indipendently

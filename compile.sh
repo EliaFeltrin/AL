@@ -25,7 +25,7 @@ PROFILER_METRICS="--metrics all "
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 15 -MN 15 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRl 0.01,1,0,1 -c"
+EXEC_FLAGS="-mN 6 -MN 6 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRl 0.01,1,0,1 -c"
 
 # Requested command
 COMMAND=$1
