@@ -13,7 +13,7 @@
 #define MAX_M_GPU 32
 #define X_BIN_MAX 32//sizeof(x_dec_Type) * 8
 
-    
+
 
 __device__ volatile int sem = 0;
 
@@ -45,8 +45,13 @@ __device__ __forceinline__ void atomicMin(fx_Type * addr_min, x_dec_Type* addr_a
 
 }
 
+__device__ __forceinline__ unsigned int triang_index_gpu(dim_Type i, dim_Type j, dim_Type N){
+    return (unsigned int)(i * (N - 0.5f) - i * i/2.0f + j);
+}
 
-__global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restrict__ A, const b_Type* __restrict__ b, const dim_Type N, const dim_Type M, const bool Q_DIAG,//input
+
+__global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restrict__ A, const b_Type* __restrict__ b, //input
+                            const dim_Type N, const dim_Type M, const bool Q_DIAG, //consts
                             fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -54,20 +59,31 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     extern __shared__ char shared_mem[];
     
     A_Type* A_shared = (A_Type*) shared_mem; //dimensione a = N * M
-    Q_Type* Q_shared = (Q_Type*) (A_shared + M * N); //dimensione N*N
+    Q_Type* Q_shared = (Q_Type*)(shared_mem + M * N *sizeof(A_Type)); //dimensione N*N
 
     if(N*N <= blockDim.x){
         //fai fare i conti a tutti i thread
-        Q_shared[threadIdx.x] = Q[threadIdx.x];
+        if(threadIdx.x < N*N)
+            Q_shared[threadIdx.x] = Q[threadIdx.x];
     }else{
-        //fai fare i conti solo al primo
+        //blockdim < N*N
+        for(unsigned int i = 0; i < N*N; i += blockDim.x){
+            if(threadIdx.x + i < N*N)
+                Q_shared[threadIdx.x + i] = Q[threadIdx.x + i];
+        }
     }
 
-
+    //stessa roba per A_shared
     if(N*M <= blockDim.x){
         //fai fare i conti a tutti i htread
+        if(threadIdx.x < N*M)
+            A_shared[threadIdx.x] = A[threadIdx.x];
     }else{
-
+        //blockdim < N*M
+        for(unsigned int i = 0; i < N*M; i += blockDim.x){
+            if(threadIdx.x + i < N*M)
+                A_shared[threadIdx.x + i] = A[threadIdx.x + i];
+        }
     }
 
     
@@ -90,7 +106,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     for(dim_Type i = 0; i < N; i++){
         if(x_bin[i] != 0){
             for(dim_Type j = 0; j < M; j++){
-                Ax_b[j] += A[j + i*M];
+                Ax_b[j] += A_shared[j + i*M];
             }    
         }
     } 
@@ -113,7 +129,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
         if(is_feasible){
             fx = 0;
             for(dim_Type i = 0; i < N; i++){
-                fx += Q[i] * x_bin[i];
+                fx += Q_shared[i] * x_bin[i];
             }
         }
     }else{
@@ -122,7 +138,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
             //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
             for(dim_Type i = 0; i < N; i++){
                 for(dim_Type j = i; j < N; j++){
-                    fx += x_bin[i] * Q[i*N + j - i - i*(i-1)/2] * x_bin[j];
+                    fx += x_bin[i] * Q_shared[triang_index_gpu(i,j,N)] * x_bin[j];
                 }
             }
         }
@@ -152,7 +168,7 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
     for(dim_Type i = 0; i < N; i++){
         for(dim_Type j = i; j < N; j++){
-            fx += x_bin[i] * Q_prime[(int)(i * (N-0.5f) - i*i/2.0f+j)] * x_bin[j];
+            fx += x_bin[i] * Q_prime[triang_index_gpu(i,j,N)] * x_bin[j];
         }
     }
 

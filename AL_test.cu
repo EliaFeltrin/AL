@@ -537,11 +537,11 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         int n_threads = min(N_THREADS, (int)pow(2,N));
         dim3 threads_per_block(n_threads);
 	    dim3 blocks_per_grid(pow(2,N)/n_threads);   
-
+        unsigned int shared_mem_size = N * M * sizeof(A_Type) +  N * N * sizeof(Q_Type);
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, fx_gpu);
+        brute_force<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
