@@ -51,10 +51,24 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
     
-    // extern __shared__ char shared_mem[];
+    extern __shared__ char shared_mem[];
     
-    // A_Type* A_shared = (A_Type*) shared_mem;
-    // Q_Type* Q_shared = (Q_Type*) (A_shared + M * N);
+    A_Type* A_shared = (A_Type*) shared_mem; //dimensione a = N * M
+    Q_Type* Q_shared = (Q_Type*) (A_shared + M * N); //dimensione N*N
+
+    if(N*N <= blockDim.x){
+        //fai fare i conti a tutti i thread
+        Q_shared[threadIdx.x] = Q[threadIdx.x];
+    }else{
+        //fai fare i conti solo al primo
+    }
+
+
+    if(N*M <= blockDim.x){
+        //fai fare i conti a tutti i htread
+    }else{
+
+    }
 
     
     
