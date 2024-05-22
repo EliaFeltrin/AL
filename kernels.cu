@@ -61,14 +61,16 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     A_Type* A_shared = (A_Type*) shared_mem; //dimensione a = N * M
     Q_Type* Q_shared = (Q_Type*)(shared_mem + M * N *sizeof(A_Type)); //dimensione N*N
 
-    if(N*N <= blockDim.x){
+
+    //rimuovere tutto tranne riga 68/69 quando vuoi runnare con Q diagonale
+    if(N <= blockDim.x){
         //fai fare i conti a tutti i thread
-        if(threadIdx.x < N*N)
+        if(threadIdx.x < N)
             Q_shared[threadIdx.x] = Q[threadIdx.x];
     }else{
         //blockdim < N*N
-        for(unsigned int i = 0; i < N*N; i += blockDim.x){
-            if(threadIdx.x + i < N*N)
+        for(unsigned int i = 0; i < N; i += blockDim.x){
+            if(threadIdx.x + i < N)
                 Q_shared[threadIdx.x + i] = Q[threadIdx.x + i];
         }
     }
@@ -154,6 +156,8 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
                                fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
+
+
 
     bool x_bin[sizeof(x_dec_Type) * 8];// we might want to set a max N and max M and assign statically the memory as that value 
     //bool* x_bin = all_x_bin + x * N;
