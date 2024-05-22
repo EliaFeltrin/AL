@@ -208,7 +208,7 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 //NB: non vengono memorizzati gli zeri della matrice triangolare inferiore
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
     const unsigned int Q_len = N*(N+1)/2;
-    
+
     std::random_device rd;
     std::mt19937 g(rd());
 
@@ -483,7 +483,6 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     //bool*       x_bin_buffer_gpu; //buffer
     //b_Type*     Ax_b_buffer_gpu;  //buffer
 
-    bool*       feasible_gpu; //output /input
     fx_Type*    fx_gpu; // output / input
     
     x_dec_Type* x_min_gpu; //output
@@ -498,7 +497,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     // CHECK(cudaMalloc(&x_bin_buffer_gpu, N * sizeof(bool) * pow(2,N))); //for each thread (thus each x) a buffer of N bools
     // CHECK(cudaMalloc(&Ax_b_buffer_gpu, M * sizeof(b_Type) * pow(2,N))); //for each thread (thus each x) a buffer of M b_Type
 
-    CHECK(cudaMalloc(&feasible_gpu, pow(2,N) * sizeof(bool)));
+    
     CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
     
     CHECK(cudaMalloc(&x_min_gpu, sizeof(x_dec_Type)));
@@ -542,12 +541,12 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, feasible_gpu, fx_gpu);
+        brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
 
-        reduce_argmin_feasible<<<blocks_per_grid, threads_per_block>>>(fx_gpu, feasible_gpu, fx_min_gpu, x_min_gpu);
+        reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, fx_min_gpu, x_min_gpu);
         CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
@@ -846,7 +845,6 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     // CHECK(cudaFree(x_bin_buffer_gpu));
     // CHECK(cudaFree(Ax_b_buffer_gpu));
 
-    CHECK(cudaFree(feasible_gpu));
     CHECK(cudaFree(fx_gpu));
     
     CHECK(cudaFree(x_min_gpu));
