@@ -119,51 +119,6 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
 }
 
 
-// __global__ void reduce_argmin_feasible(fx_Type* __restrict__ input, fx_Type* __restrict__ min, x_dec_Type* __restrict__ x_min){
-
-//   	// Declare shared memory of N_THREADS elements
-//   	__shared__ fx_Type s_input[N_THREADS]; // Shared memory for the block
-//     __shared__ x_dec_Type s_x[N_THREADS];         // Shared memory for the block
-
-
-//   	// Position in the input array from which to start the reduction  
-//   	const unsigned int i = threadIdx.x;
-
-//   	// Offset the pointers to the correct block
-//   	input += blockDim.x * blockIdx.x;
-
-//   	// perform first reduction step to copy the data from global memory to shared memory
-  	
-//   	s_input[i] = input[i];
-
-//     s_x[i] = threadIdx.x + blockIdx.x * blockDim.x;
-    
-//     if(threadIdx.x + blockIdx.x * blockDim.x == 0){
-//         *min = std::numeric_limits<fx_Type>::max();
-//     }
-
-//   	// Perform the reduction for each block indipendently
-//   	for (unsigned int stride = blockDim.x/2; i < stride; stride /= 2) {
-  	    
-// 		__syncthreads(); //needs to be moved up since the first iteration is outside
-
-// 		if(s_input[i] > s_input[i + stride])){
-//   	    	s_input[i] = s_input[i + stride];
-//             s_x[i] = s_x[i + stride];
-//         }
-
-//   	}
-
-//   	// Write result for this block to global memory
-//   	if (i == 0) {
-//         //printf("Block min: %f, x: %d\n", s_input[0], s_x[0]);
-//         atomicMin(min, x_min, s_input[0], s_x[0]);
-//   	}
-
-// 	//retrun di minimum e x corrispondente
-    
-// }
-
 
 __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Type N, //input
                                fx_Type* __restrict__ fx_vals) { //output
