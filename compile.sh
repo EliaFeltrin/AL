@@ -9,7 +9,7 @@ fi
 # Compiler
 COMPILER=nvcc
 # Flags for nvcc
-COMPILER_FLAGS="-arch=sm_61 -g -lineinfo -o exe"
+COMPILER_FLAGS="-arch=sm_61 -g -lineinfo --expt-relaxed-constexpr -o exe"
 
 
 # Profiler
@@ -25,7 +25,7 @@ PROFILER_METRICS="--metrics all "
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 6 -MN 6 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRl 0.01,1,0,1 -c"
+EXEC_FLAGS="-mN 12 -MN 12 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRq 0.3,2,1,2 -c -f"
 
 # Requested command
 COMMAND=$1

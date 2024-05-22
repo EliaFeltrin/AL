@@ -4,12 +4,16 @@
 #include <cstdint>
 #include <cuda_runtime.h>
 #include <float.h>
+#include <limits>
+
 #include "types.h"
 
 
 #define N_THREADS 1024
 #define MAX_M_GPU 32
 #define X_BIN_MAX 32//sizeof(x_dec_Type) * 8
+
+    
 
 __device__ volatile int sem = 0;
 
@@ -88,11 +92,12 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     }
 
 
-    fx_Type fx = DBL_MAX;           ///SET A MACRO FOR DBL_MAX CHE DIPENDE DA fx_Type
+    fx_Type fx = std::numeric_limits<fx_Type>::max();
     feasible[x] = is_feasible;
 
     if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
         if(is_feasible){
+            fx = 0;
             for(dim_Type i = 0; i < N; i++){
                 fx += Q[i] * x_bin[i];
             }
@@ -109,6 +114,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
         }
     }
     fx_vals[x] = fx;
+
 
 }
 
@@ -135,7 +141,7 @@ __global__ void reduce_argmin_feasible(fx_Type* __restrict__ input, bool* __rest
     s_x[i] = threadIdx.x + blockIdx.x * blockDim.x;
     
     if(threadIdx.x + blockIdx.x * blockDim.x == 0){
-        *min = DBL_MAX;
+        *min = std::numeric_limits<fx_Type>::max();
     }
 
   	// Perform the reduction for each block indipendently
@@ -211,7 +217,7 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, fx_Type* __restrict__
 
 
     if(threadIdx.x + blockIdx.x * blockDim.x == 0){
-        *min = DBL_MAX;                         ///SET A MACRO FOR DBL_MAX CHE DIPENDE DA fx_Type
+        *min = std::numeric_limits<fx_Type>::max();                         
     }
 
   	// Perform the reduction for each block indipendently

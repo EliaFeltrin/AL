@@ -17,11 +17,13 @@
 
 #include "AL_test.cu"
 
+
+
 //TODO: RIMUOVERE MAX, BASTA X = 1_N
 
 
-double MAX_MU = DBL_MAX;
-double MAX_LAMBDA = DBL_MAX;
+double MAX_MU = max_val<mu_Type>();
+double MAX_LAMBDA = max_val<lambda_Type>();
 
 char name_suffix[20] = "";  
 char results_path[100] = "./results/";
@@ -290,8 +292,8 @@ int main(int argc, char** argv) {
     print_file_stdout(file, "rho = %f\n", rho);
     print_file_stdout(file, "Initial lambda = %.1f\n", initial_lambda);
     print_file_stdout(file, "Maximum number of AL attempts (if 'PARAM_2_Al_attempts' selected) = %d\n", N_AL_ATTEMPTS);
-    print_file_stdout(file, "Maximum value of mu (if 'max_mu' selected) = "); MAX_MU == DBL_MAX ? print_file_stdout(file, "MAX DOUBLE\n") : print_file_stdout(file, "%.1f\n", MAX_MU);
-    print_file_stdout(file, "Maximum value of lambda (if 'max_lambda' selected) = "); MAX_LAMBDA == DBL_MAX ? print_file_stdout(file, "MAX DOUBLE\n") : print_file_stdout(file, "%.1f\n", MAX_LAMBDA);
+    print_file_stdout(file, "Maximum value of mu (if 'max_mu' selected) = "); MAX_MU == max_val<mu_Type>() ? print_file_stdout(file, "MAX DOUBLE\n") : print_file_stdout(file, "%.1f\n", MAX_MU);
+    print_file_stdout(file, "Maximum value of lambda (if 'max_lambda' selected) = "); MAX_LAMBDA == max_val<lambda_Type>() ? print_file_stdout(file, "MAX DOUBLE\n") : print_file_stdout(file, "%.1f\n", MAX_LAMBDA);
     print_file_stdout(file, "Stop conditions:\n");
     for(int i=0; i<stop_conditions_end; i++){
         if(selected_stop_conditions[i]){
@@ -381,12 +383,12 @@ int main(int argc, char** argv) {
 
 
     test_results summary = {};
-    summary.lambda_min_on_correct_solutions     = sizeof(lambda_Type) == sizeof(double) ?  DBL_MAX  : FLT_MAX;
-    summary.lambda_min_on_unfinished_solutions  = sizeof(lambda_Type) == sizeof(double) ?  DBL_MAX  : FLT_MAX;
-    summary.lambda_min_on_wrong_solutions       = sizeof(lambda_Type) == sizeof(double) ?  DBL_MAX  : FLT_MAX;
-    summary.lambda_max_on_correct_solutions     = sizeof(lambda_Type) == sizeof(double) ?  DBL_MIN  : FLT_MIN;
-    summary.lambda_max_on_unfinished_solutions  = sizeof(lambda_Type) == sizeof(double) ?  DBL_MIN  : FLT_MIN;
-    summary.lambda_max_on_wrong_solutions       = sizeof(lambda_Type) == sizeof(double) ?  DBL_MIN  : FLT_MIN;
+    summary.lambda_min_on_correct_solutions     = max_val<lambda_Type>();
+    summary.lambda_min_on_unfinished_solutions  = max_val<lambda_Type>();
+    summary.lambda_min_on_wrong_solutions       = max_val<lambda_Type>();
+    summary.lambda_max_on_correct_solutions     = -max_val<lambda_Type>();
+    summary.lambda_max_on_unfinished_solutions  = -max_val<lambda_Type>();
+    summary.lambda_max_on_wrong_solutions       = -max_val<lambda_Type>();
     int tot_tests = results.size();
     for(int i = 0; i<tot_tests; i++){
         summary.correct_ratio += results[i].correct_ratio/tot_tests;

@@ -24,6 +24,11 @@
 #include "types.h"
 #include "kernels.cu"
 
+template <typename T>
+constexpr T max_val(){
+    return std::numeric_limits<T>::max();
+}
+
 
 /*--------------------------------------- MACROS -------------------------------------------------- */
 
@@ -203,7 +208,7 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 //NB: non vengono memorizzati gli zeri della matrice triangolare inferiore
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
     const unsigned int Q_len = N*(N+1)/2;
-    std::cout << "Q_len = " << Q_len << std::endl;
+    
     std::random_device rd;
     std::mt19937 g(rd());
 
@@ -449,16 +454,16 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     b_Type* c = new b_Type[M];
 
 
-    double true_max_val, true_min_val, al_min_val;
+    fx_Type true_max_val, true_min_val, al_min_val;
 
     mu_Type mu;
     mu_Type old_mu;
     lambda_Type mean_lambda_on_correct_solutions       = 0,    mean_mu_on_correct_solutions      = 0;
     lambda_Type mean_lambda_on_unfinished_solutions    = 0,    mean_mu_on_unfinished_solutions   = 0;
     lambda_Type mean_lambda_on_wrong_solutions         = 0,    mean_mu_on_wrong_solutions        = 0;
-    lambda_Type lambda_min_on_correct_solutions        = sizeof(lambda_Type) == sizeof(double) ? DBL_MAX : FLT_MAX,  lambda_max_on_correct_solutions       = sizeof(lambda_Type) == sizeof(double) ? -DBL_MAX : -FLT_MAX;     
-    lambda_Type lambda_min_on_unfinished_solutions     = sizeof(lambda_Type) == sizeof(double) ? DBL_MAX : FLT_MAX,  lambda_max_on_unfinished_solutions    = sizeof(lambda_Type) == sizeof(double) ? -DBL_MAX : -FLT_MAX; 
-    lambda_Type lambda_min_on_wrong_solutions          = sizeof(lambda_Type) == sizeof(double) ? DBL_MAX : FLT_MAX,  lambda_max_on_wrong_solutions         = sizeof(lambda_Type) == sizeof(double) ? -DBL_MAX : -FLT_MAX; 
+    lambda_Type lambda_min_on_correct_solutions        = max_val<lambda_Type>(),  lambda_max_on_correct_solutions       = -max_val<lambda_Type>();     
+    lambda_Type lambda_min_on_unfinished_solutions     = max_val<lambda_Type>(),  lambda_max_on_unfinished_solutions    = -max_val<lambda_Type>(); 
+    lambda_Type lambda_min_on_wrong_solutions          = max_val<lambda_Type>(),  lambda_max_on_wrong_solutions         = -max_val<lambda_Type>(); 
     double mean_al_attempts_on_correct_solutions     = 0;
     double mean_al_attempts_on_wrong_solutions       = 0;
     double mean_al_attempts_on_unfinished_solutions  = 0;   
