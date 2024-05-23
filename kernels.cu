@@ -10,10 +10,13 @@
 
 
 #define N_THREADS 1024
+#define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
-#define X_BIN_MAX 32//sizeof(x_dec_Type) * 8
 
 
+__constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
+__constant__ Q_Type Q_const[MAX_N_GPU * (MAX_N_GPU + 1) / 2];
+__constant__ b_Type b_const[MAX_M_GPU];
 
 __device__ volatile int sem = 0;
 
@@ -46,56 +49,37 @@ __device__ __forceinline__ void atomicMin(fx_Type * addr_min, x_dec_Type* addr_a
 }
 
 
-__global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restrict__ A, const b_Type* __restrict__ b, //input
+__global__ void brute_force( //input
                             const dim_Type N, const dim_Type M, const bool Q_DIAG, //consts
                             fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
     
     extern __shared__ char shared_mem[];
+
+    //bool x_bin[MAX_N_GPU]; 
     
-    A_Type* A_shared = (A_Type*) shared_mem; //dimensione a = N * M
-    Q_Type* Q_shared = (Q_Type*)(shared_mem + M * N *sizeof(A_Type)); //dimensione N*N
+    // #pragma unroll
+    // for(dim_Type i = 0; i < N; i++){
+    //     x_bin[i] = (x >> i) & 1;
+    // }
 
 
-    // Load A into shared memory
-    for (unsigned int i = threadIdx.x; i < N * M; i += blockDim.x) {
-        A_shared[i] = A[i];
+    //b_Type Ax_b[MAX_M_GPU] = {0};
+    b_Type* Ax_b = (b_Type*) shared_mem;
+    //fill Ax_b with zeros
+    for(dim_Type i = 0; i < M; i++){
+        Ax_b[i * blockDim.x + threadIdx.x] = 0;
     }
 
-    // Load Q into shared memory
-    if(Q_DIAG){
-        for (unsigned int i = threadIdx.x; i < N; i += blockDim.x) {
-            Q_shared[i] = Q[i];
-        }
-    }else{
-        for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
-            Q_shared[i] = Q[i];
-        }
-    }
-    
-
-    __syncthreads();
-    
-    bool x_bin[X_BIN_MAX]; 
-    //bool* x_bin = all_x_bin + x * N; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER
-    
-    #pragma unroll
-    for(dim_Type i = 0; i < N; i++){
-        x_bin[i] = (x >> i) & 1;
-    }
-
-
-    double Ax_b[MAX_M_GPU] = {0};
-    //b_Type* Ax_b = all_Ax_b + x * M; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER
 
     bool is_feasible = true;
     //RISCRIVIAMO A*x - b facendo in modo che se x == 0 skippiamo i conti
-    #pragma unroll
+    #pragma unroll 
     for(dim_Type i = 0; i < N; i++){
-        if(x_bin[i] != 0){
+        if(((x >> i) & 0b1) != 0){
             for(dim_Type j = 0; j < M; j++){
-                Ax_b[j] += A_shared[j + i*M];
+                Ax_b[j * blockDim.x + threadIdx.x] += A_const[j + i*M];
             }    
         }
     } 
@@ -103,8 +87,9 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     //check if x is feasible
     #pragma unroll
     for(dim_Type i = 0; i < M; i++){
-        Ax_b[i] -= b[i];
-        if(Ax_b[i] > 0){
+        Ax_b[i * blockDim.x + threadIdx.x] -= b_const[i];
+
+        if(Ax_b[i * blockDim.x + threadIdx.x] > 0){
             is_feasible = false;
         }
     }
@@ -115,9 +100,8 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     if(is_feasible){
         fx = 0;
         if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
-            #pragma unroll
             for(dim_Type i = 0; i < N; i++){
-                fx += Q_shared[i] * x_bin[i];
+                fx += Q_const[i] * ((x >> i) & 0b1);
             }
         }else{
             
@@ -125,37 +109,28 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
             //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
             for(dim_Type i = 0; i < N; i++){
                 for(dim_Type j = i; j < N; j++){
-                    fx += x_bin[i] * Q_shared[Q_idx++] * x_bin[j];
+                    fx += ((x >> i) & 0b1) * Q_const[Q_idx++] * ((x >> j) & 0b1);
                 }
             }
         }
     }
     fx_vals[x] = fx;
-    
 
 }
 
 
 
-__global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Type N, //input
+__global__ void brute_force_AL(const dim_Type N, //input
                                fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
 
-    extern __shared__ char shared_mem[];
-    Q_Type* Q_shared = (Q_Type*)shared_mem;
-
-    // Load Q into shared memory
-    for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
-        Q_shared[i] = Q_prime[i];
-    }
-
-    bool x_bin[sizeof(x_dec_Type) * 8];// we might want to set a max N and max M and assign statically the memory as that value 
+    //bool x_bin[MAX_N_GPU];// we might want to set a max N and max M and assign statically the memory as that value 
     //bool* x_bin = all_x_bin + x * N;
     
-    for(dim_Type i = 0; i < N; i++){
-        x_bin[i] = (x >> i) & 1;
-    }
+    // for(dim_Type i = 0; i < N; i++){
+    //     x_bin[i] = (x >> i) & 1;
+    // }
     
 
     fx_Type fx = 0;
@@ -163,7 +138,7 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
     for(dim_Type i = 0; i < N; i++){
         for(dim_Type j = i; j < N; j++){
-            fx += x_bin[i] * Q_prime[Q_idx++] * x_bin[j];
+            fx += ((x >> i) & 0b1) * Q_const[Q_idx++] * ((x >> i) & 0b1);
         }
     }
 
