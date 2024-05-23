@@ -22,8 +22,7 @@
 
 /*--------------------------------------- DEFINES ------------------------------------------------- */
 
-#define shared_const_size 64000
-
+#define CUDA_DEVICE_INDEX 0
 
 /*--------------------------------------- GLOBAL VARIABLES ---------------------------------------- */
 
@@ -43,6 +42,8 @@ bool PCR_PROBLEM = false;
 
 int main(int argc, char** argv) {
 
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, CUDA_DEVICE_INDEX);
 
     //default values
     int MIN_N = 1;
@@ -274,7 +275,7 @@ int main(int argc, char** argv) {
         MIN_N = -PARAM_1_b;
     }
 
-    if( MAX_M * MAX_N * sizeof(A_Type) + MAX_M * sizeof(b_Type) + (Q_DIAG ? MAX_N : MAX_N * (MAX_N + 1) / 2) * sizeof(Q_Type) > shared_const_size){
+    if( MAX_M * MAX_N * sizeof(A_Type) + MAX_M * sizeof(b_Type) + (Q_DIAG ? MAX_N : MAX_N * (MAX_N + 1) / 2) * sizeof(Q_Type) > prop.totalConstMem){
         printf("ERROR: shared memory size exceeded. Please reduce either N or M.\n");
         exit(EXIT_FAILURE);
     }
