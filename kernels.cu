@@ -144,11 +144,11 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
 
     extern __shared__ char shared_mem[];
-    Q_Type* Q_shared = (Q_Type*)shared_mem;
+    Q_Type* Q_prime_shared = (Q_Type*)shared_mem;
 
     // Load Q into shared memory
     for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
-        Q_shared[i] = Q_prime[i];
+        Q_prime_shared[i] = Q_prime[i];
     }
 
     bool x_bin[sizeof(x_dec_Type) * 8];// we might want to set a max N and max M and assign statically the memory as that value 
@@ -165,7 +165,7 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     for(dim_Type i = 0; i < N; i++){
         #pragma unroll
         for(dim_Type j = i; j < N; j++){
-            fx += x_bin[i] * Q_prime[Q_idx++] * x_bin[j];
+            fx += x_bin[i] * Q_prime_shared[Q_idx++] * x_bin[j];
         }
     }
 
