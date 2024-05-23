@@ -63,7 +63,7 @@ elif [ $COMMAND == "profileTrace" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    $PROFILER $EXTRA_FLAGS $PROFILER_FLAGS ./exe $EXEC_FLAGS
+    $PROFILER $EXTRA_FLAGS $PROFILER_TRACE ./exe $EXEC_FLAGS
     exit 0
 elif [ $COMMAND == "profileEvents" ]; then
     # Profile only
