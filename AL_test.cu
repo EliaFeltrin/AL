@@ -549,10 +549,11 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         int n_threads = min(N_THREADS, (int)pow(2,N));
         dim3 threads_per_block(n_threads);
 	    dim3 blocks_per_grid(pow(2,N)/n_threads);   
+        const int shared_mem_size = N_THREADS * M * sizeof(b_Type);
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force<<<blocks_per_grid, threads_per_block>>>(N, M, Q_DIAG, fx_gpu);
+        brute_force<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(N, M, Q_DIAG, fx_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
@@ -601,10 +602,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 printf("]\n");
             }
             
-            
-
-            //printf("DOVRESTI PRIMA SCRIVERE IL KERNEL PER AL. Ti faccio un iterazione di test a vuoto\n");
-
+        
 
             
             //devo calcolare Q' = Q + A^T A + diag((lambda - mu b)^T A)
@@ -628,10 +626,12 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 Q_plus_AT_A[triang_index(i,i,N)] += lambda_mu_b_A[i]; 
             }
 
+            
+
             //copy Q_plus_AT_A to GPU
             CHECK(cudaMemcpyToSymbol(Q_const, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
 
-            brute_force_AL<<<blocks_per_grid, threads_per_block>>>(N, fx_gpu);
+            brute_force_AL<<<blocks_per_grid, threads_per_block,shared_mem_size>>>(N, fx_gpu);
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 
