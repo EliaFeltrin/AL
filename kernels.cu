@@ -51,12 +51,6 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
     
-    // extern __shared__ char shared_mem[];
-    
-    // A_Type* A_shared = (A_Type*) shared_mem;
-    // Q_Type* Q_shared = (Q_Type*) (A_shared + M * N);
-
-    
     
     bool x_bin[X_BIN_MAX]; 
     //bool* x_bin = all_x_bin + x * N; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER

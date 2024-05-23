@@ -24,6 +24,15 @@
 #include "types.h"
 #include "kernels.cu"
 
+#define DEBUG
+ 
+#ifndef DEBUG
+    #define RAND_GEN_INIT std::random_device rd; std::mt19937 g(rd());
+#else
+    unsigned long seed = 42;
+    #define RAND_GEN_INIT std::mt19937 g(seed++);
+#endif
+
 template <typename T>
 constexpr T max_val(){
     return std::numeric_limits<T>::max();
@@ -189,8 +198,10 @@ void print_file_stdout(FILE *file, const char *format, ...);
 
 //NB: viene memorizzata solo la diagonale, pertanto Q è di lunghezza N
 void fill_Q_diag_lin(Q_Type* Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbund){
-    std::random_device rd;
-    std::mt19937 g(rd());
+    //std::random_device rd;
+    //std::mt19937 g(rd());
+
+    RAND_GEN_INIT;
 
     for(dim_Type i = 0; i < N; i++){
         Q[i] = lowerbound + (upperbund-lowerbound)*((Q_Type)g()/g.max());
@@ -209,8 +220,9 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
     const unsigned int Q_len = N*(N+1)/2;
 
-    std::random_device rd;
-    std::mt19937 g(rd());
+    //std::random_device rd;
+    //std::mt19937 g(rd());
+    RAND_GEN_INIT;
 
     for(unsigned int i = 0; i < Q_len; i++){
         Q[i] = lowerbound + (upperbound-lowerbound)*((Q_Type)g()/g.max());
@@ -236,9 +248,9 @@ void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const
         aux_vec[i] = -1;
     }
     
-    std::random_device rd;
-    std::mt19937 g(rd());
-    
+    // std::random_device rd;
+    // std::mt19937 g(rd());
+    RAND_GEN_INIT;
 
     std::shuffle(aux_vec.begin(), aux_vec.end(), g);
 
