@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import re
+import sys
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,7 +12,9 @@ def parse_nvprof_output(file_path):
     
     metrics = {}
     kernel_name = None
-    for line in lines:
+    for i,line in enumerate(lines):
+        if i == 3:
+            continue
         if line.startswith("==") or line.startswith("Device"):
             continue
         if "Kernel" in line:
@@ -23,8 +25,17 @@ def parse_nvprof_output(file_path):
             if len(parts) >= 2:
                 metric_name = parts[1]
                 metric_value = parts[-1]
-                metric_value = re.sub(r'\D,', '', metric_value)
-                metrics[kernel_name][metric_name] = metric_value
+                if metric_name == 'gld_throughput' or metric_name == 'gst_throughput':
+                    metric_value = metric_value[0:-4]
+                    metric_value = float(metric_value) * 1024 * 1024
+                elif metric_name == 'dram_read_throughput' or metric_name == 'dram_write_throughput':
+                    metric_value = metric_value[0:-4]
+                    metric_value = float(metric_value) * 1024 * 1024 * 1024
+                elif metric_name == 'inst_per_warp':
+                    metric_value = float(metric_value)
+                else:
+                    continue
+                metrics[kernel_name][metric_name] = float(metric_value)
     
     return metrics
 
@@ -57,12 +68,11 @@ def plot_roofline(data):
     plt.figure(figsize=(10, 6))
     
     # Peak performance and memory bandwidth (values for GTX 1050 Ti)
-    peak_fp32_performance = 2.1e12  # 2.1 TFLOPS in FLOP/s
-    peak_memory_bandwidth = 112e9  # 112 GB/s in B/s
+    peak_fp32_performance = 2.488e12  # 2.1 TFLOPS in FLOP/s
+    peak_memory_bandwidth = 112.1e9  # 112 GB/s in B/s
     
     # Generate the Roofline plot
     for i, row in data.iterrows():
-        print(row)
         plt.scatter(row['Memory Throughput'], row['Compute Throughput'], label=row['Kernel'])
     
     # Adding the Roofline
@@ -80,14 +90,23 @@ def plot_roofline(data):
     plt.title('Roofline Model')
     plt.legend()
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Set x and y axis limits
+    plt.xlim(left=1)  # Set left limit of x-axis
+    plt.ylim(bottom=1)  # Set bottom limit of y-axis
+
     plt.show()
 
 
 # Main
-file_path = './metrics.txt'  # Cambia con il percorso corretto del file
-metrics = parse_nvprof_output(file_path)
-data = calculate_metrics(metrics)
-plot_roofline(data)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python roofline.py <file_path>")
+        sys.exit(1)
+    file_path = './metrics.txt'  # Cambia con il percorso corretto del file
+    metrics = parse_nvprof_output(file_path)
+    data = calculate_metrics(metrics)
+    plot_roofline(data)
 
 
 

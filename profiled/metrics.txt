@@ -1,6 +1,7 @@
 ==9779== Profiling application: ./exe -mN 20 -MN 20 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 1 -r 0.1 -PCRq 0.3,2,1,2 -c -f
 ==9779== Profiling result:
 ==9779== Metric result:
+Invocations                               Metric Name                                                    Metric Description         Min         Max         Avg
 Device "NVIDIA GeForce GTX 1050 Ti (0)"
     Kernel: brute_force(float const *, int const *, int const *, unsigned char, unsigned char, bool, float*)
           1                             inst_per_warp                                                 Instructions per warp  2.4140e+03  2.4140e+03  2.4140e+03
