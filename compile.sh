@@ -26,7 +26,7 @@ PROFILER_METRICS="--metrics all "
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-EXEC_FLAGS="-mN 20 -MN 20 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 300 -r 0.1 -PCRq 0.3,2,1,2 -c -f"
+EXEC_FLAGS="-mN 20 -MN 20 -mM 4 -MM 4 -ml=0 -mu 0.1 -l -a 1000 -i 1000 -r 0.1 -PCRl 0.3,2,1,2 -c -s"
 
 # Requested command
 COMMAND=$1
@@ -36,6 +36,7 @@ COMMAND=$1
 # ALL the extra flags passed in input
 shift
 EXTRA_FLAGS=$@
+
 
 # CUDA source file
 CUDA_FILE=" param_visualization_n_dim_par2.cu"
@@ -57,25 +58,25 @@ elif [ $COMMAND == "profile" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    $PROFILER $EXTRA_FLAGS ./exe $EXEC_FLAGS
+    $PROFILER $EXTRA_FLAGS ./exe $EXEC_FLAGS -f
     exit 0
 elif [ $COMMAND == "profileTrace" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    $PROFILER $EXTRA_FLAGS $PROFILER_TRACE ./exe $EXEC_FLAGS
+    $PROFILER $EXTRA_FLAGS $PROFILER_TRACE ./exe $EXEC_FLAGS -f
     exit 0
 elif [ $COMMAND == "profileEvents" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    sudo $PROFILER $EXTRA_FLAGS $PROFILER_EVENTS ./exe $EXEC_FLAGS
+    sudo $PROFILER $EXTRA_FLAGS $PROFILER_EVENTS ./exe $EXEC_FLAGS -f
     exit 0
 elif [ $COMMAND == "profileMetrics" ]; then
     # Profile only
     echo "Compiling and profiling CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $CUDA_FILE
-    sudo $PROFILER $EXTRA_FLAGS $PROFILER_METRICS ./exe $EXEC_FLAGS
+    sudo $PROFILER $EXTRA_FLAGS $PROFILER_METRICS ./exe $EXEC_FLAGS -f
     exit 0
 elif [ $COMMAND == "debug" ]; then
     # Run only
