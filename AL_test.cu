@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <cuda_runtime.h>
 #include <iostream>
+#include <iomanip>
 
 #include "types.h"
 #include "kernels.cu"
@@ -372,7 +373,8 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
     printf("A =\n");
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
-            printf("%3.0f ", A[i+j*M]);
+            //stampa A con il cout facendo in modo che i valori siano allineati (-1 e 0 non sono allineati)
+            std::cout << std::setw(2) << A[i+j*M] << " ";
         }
         printf("\n");
     }
@@ -381,7 +383,7 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
 void print_b(const b_Type* b, const dim_Type M){
     printf("b^T = [");
     for(dim_Type i = 0; i < M; i++){
-        printf("%.0f ", b[i]);
+        std::cout << std::setw(2) << b[i] << " "; 
     }
     printf("]\n");
 }
@@ -516,7 +518,6 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
         if(verbose || strong_verbose){
             printf("-------------------------------------------------------------\n");
-            //print Q, A, b
             print_Q(Q, N);
             print_A(A, M, N);
             print_b(b, M);
@@ -561,10 +562,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
         if(strong_verbose){
             printf("Expected minimum found in x = [ ");
-            for(int i = 0; i < N; i++){
-                printf("%d ", expected_min_x[i]);
+            for(dim_Type i = 0; i < N; i++){
+                std::cout << expected_min_x[i] << " ";
             }
-            printf("] with value %.1f\n\n", true_min_val);
+            std::cout << "] with value " << true_min_val << std::endl << std::endl;
         }
 
         true_max_val = compute_max(Q, N);                                          //TO DO: calcolare il vero massimo
@@ -648,9 +649,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
             
             if(strong_verbose){
-                printf("c_x_opt^T = [ ");
+                printf("c_x_opt^T = [");
                 for(int i = 0; i < M; i++){
-                    printf("%.5f ", c[i]);
+                    std::cout << std::setw(2) << c[i] << " ";
+                    //std::printf("%.5f ", c[i]);
                 }
                 printf("]\tx_opt = [ ");
                 for(int i = 0; i < N; i++){
@@ -716,7 +718,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 print_b(b, M);
                 printf("c = \n");
                 for(int i = 0; i < M; i++){
-                    printf("%.1f ", c[i]);
+                    std::cout << std::setw(2) << c[i] << " ";
+                    //printf("%.1f ", c[i]);
                 }
                 printf("\n");
                 return 0;
@@ -746,9 +749,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             }
 
             if(!strong_verbose){
-                printf("c_x^T =\t\t[\t");
+                printf("c_x^T =\t\t[");
                 for(int i = 0; i < M; i++){
-                    printf("%.1f\t", c[i]);
+                    std::cout << std::setw(2) << c[i] << " ";
+                    //printf("%.1f\t", c[i]);
                 }
                 printf("]\nlambda^T =\t[\t");
                 for(int i = 0; i < M; i++){
