@@ -1,3 +1,5 @@
+/*--------------------------------------- INCLUDES ------------------------------------------------ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -18,9 +20,12 @@
 #include "AL_test.cu"
 
 
+/*--------------------------------------- DEFINES ------------------------------------------------- */
 
-//TODO: RIMUOVERE MAX, BASTA X = 1_N
+#define shared_const_size 64000
 
+
+/*--------------------------------------- GLOBAL VARIABLES ---------------------------------------- */
 
 double MAX_MU = max_val<mu_Type>();
 double MAX_LAMBDA = max_val<lambda_Type>();
@@ -34,10 +39,10 @@ bool Q_ID = false;
 bool PCR_PROBLEM = false;
 
 
+/*--------------------------------------- MAIN ---------------------------------------------------- */
 
 int main(int argc, char** argv) {
 
-    //printf("check 0\n");
 
     //default values
     int MIN_N = 1;
@@ -62,9 +67,7 @@ int main(int argc, char** argv) {
     unsigned char Q_fill_policy = not_set;
     unsigned char A_fill_policy = not_set;    
     unsigned char b_fill_policy = not_set;
-    //char fill_distributions_names_str[fill_distributions_end][20] = {"uniform", "MMF", "PCR", "PCRlinear"};
-    //enum QAb {Q, A, b, QAb_end};
-    //unsigned int selected_fill_distributions[QAb_end] = {uniform, uniform, uniform};
+
     char stop_conditions_names_str[stop_conditions_end][20] = {"max_Al_attempts", "max_mu", "max_lambda"};
     int stop_condition_counter = 0;
     bool selected_stop_conditions[3] = {false, false, false};
@@ -87,6 +90,9 @@ int main(int argc, char** argv) {
     mu_Type (*update_mu)(const mu_Type mu, const mu_Type rho) = update_mu_exp;
 
     bool computer_test = false;
+
+/*--------------------------------------- INPUT PARAMS RPOCESSING --------------------------------- */
+
 
     int opt;
     while ((opt = getopt(argc, argv, "lm:M:N:u:l:i:a:r:n:F:o:P:C:R:b:e::vsdfch::")) != -1) {
@@ -235,6 +241,10 @@ int main(int argc, char** argv) {
         }
     }
 
+
+/*--------------------------------------- CHECKs -------------------------------------------------- */
+
+
     if(MIN_N < -PARAM_1_b){
         printf("ERROR: unfeasible problem. N must be >= b\n");
         exit(EXIT_FAILURE);
@@ -264,11 +274,19 @@ int main(int argc, char** argv) {
         MIN_N = -PARAM_1_b;
     }
 
+    if( MAX_M * MAX_N * sizeof(A_Type) + MAX_M * sizeof(b_Type) + (Q_DIAG ? MAX_N : MAX_N * (MAX_N + 1) / 2) * sizeof(Q_Type) > shared_const_size){
+        printf("ERROR: shared memory size exceeded. Please reduce either N or M.\n");
+        exit(EXIT_FAILURE);
+    }
+
 
     if(stop_condition_counter == 0){
         stop_condition_counter = 1;
         selected_stop_conditions[max_Al_attempts] = true;
     }
+
+
+/*--------------------------------------- INPUT PARAMS VISUALIZZATION ----------------------------- */
 
     //show test params and save on a file
     std::time_t t = std::time(nullptr);
@@ -344,6 +362,9 @@ int main(int argc, char** argv) {
     }
 
 
+/*--------------------------------------- TEST ---------------------------------------------------- */
+
+
     int max_n = (MAX_N >= MIN_N ? MAX_N : MIN_N);
     int max_m = (MAX_M >= MIN_M ? MAX_M : MIN_M);
 
@@ -380,6 +401,9 @@ int main(int argc, char** argv) {
 
         }
     }
+
+
+/*--------------------------------------- SUMMARY DATA -------------------------------------------- */
 
 
     test_results summary = {};
@@ -433,6 +457,10 @@ int main(int argc, char** argv) {
         printf("\tmean lambda = %.1f\tmax lambda = %.1f\tmin lambda = %.1f\n", summary.mean_lambda_on_wrong_solutions, summary.lambda_max_on_wrong_solutions, summary.lambda_min_on_wrong_solutions);
         printf("\tmean mu = %.1f\tmean AL attempts = %.1f\n", summary.mean_mu_on_wrong_solutions, summary.mean_al_attempts_on_wrong_solutions);
     }
+
+
+/*--------------------------------------- FILE SAVING --------------------------------------------- */
+
 
     //finalize(results);
     //finalize(summary);
