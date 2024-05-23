@@ -10,7 +10,7 @@
 
 
 #define N_THREADS 1024
-#define MAX_M_GPU 32
+#define MAX_M_GPU 16
 #define X_BIN_MAX 32//sizeof(x_dec_Type) * 8
 
 
@@ -45,10 +45,6 @@ __device__ __forceinline__ void atomicMin(fx_Type * addr_min, x_dec_Type* addr_a
 
 }
 
-__device__ __forceinline__ unsigned int triang_index_gpu(dim_Type i, dim_Type j, dim_Type N){
-    return (unsigned int)(i * (N - 0.5f) - i * i/2.0f + j);
-}
-
 
 __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restrict__ A, const b_Type* __restrict__ b, //input
                             const dim_Type N, const dim_Type M, const bool Q_DIAG, //consts
@@ -62,33 +58,24 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     Q_Type* Q_shared = (Q_Type*)(shared_mem + M * N *sizeof(A_Type)); //dimensione N*N
 
 
-    //rimuovere tutto tranne riga 68/69 quando vuoi runnare con Q diagonale
-    if(N <= blockDim.x){
-        //fai fare i conti a tutti i thread
-        if(threadIdx.x < N)
-            Q_shared[threadIdx.x] = Q[threadIdx.x];
-    }else{
-        //blockdim < N*N
-        for(unsigned int i = 0; i < N; i += blockDim.x){
-            if(threadIdx.x + i < N)
-                Q_shared[threadIdx.x + i] = Q[threadIdx.x + i];
-        }
+    // Load A into shared memory
+    for (unsigned int i = threadIdx.x; i < N * M; i += blockDim.x) {
+        A_shared[i] = A[i];
     }
 
-    //stessa roba per A_shared
-    if(N*M <= blockDim.x){
-        //fai fare i conti a tutti i htread
-        if(threadIdx.x < N*M)
-            A_shared[threadIdx.x] = A[threadIdx.x];
+    // Load Q into shared memory
+    if(Q_DIAG){
+        for (unsigned int i = threadIdx.x; i < N; i += blockDim.x) {
+            Q_shared[i] = Q[i];
+        }
     }else{
-        //blockdim < N*M
-        for(unsigned int i = 0; i < N*M; i += blockDim.x){
-            if(threadIdx.x + i < N*M)
-                A_shared[threadIdx.x + i] = A[threadIdx.x + i];
+        for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
+            Q_shared[i] = Q[i];
         }
     }
-
     
+
+    __syncthreads();
     
     bool x_bin[X_BIN_MAX]; 
     //bool* x_bin = all_x_bin + x * N; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER
@@ -119,34 +106,32 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
         Ax_b[i] -= b[i];
         if(Ax_b[i] > 0){
             is_feasible = false;
-            break;
         }
     }
 
 
     fx_Type fx = std::numeric_limits<fx_Type>::max();
     
-
-    if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
-        if(is_feasible){
-            fx = 0;
+    if(is_feasible){
+        fx = 0;
+        if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
+            #pragma unroll
             for(dim_Type i = 0; i < N; i++){
                 fx += Q_shared[i] * x_bin[i];
             }
-        }
-    }else{
-        if(is_feasible){       
-            fx = 0;
+        }else{
+            
+            int Q_idx = 0;
             //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
             for(dim_Type i = 0; i < N; i++){
                 for(dim_Type j = i; j < N; j++){
-                    fx += x_bin[i] * Q_shared[triang_index_gpu(i,j,N)] * x_bin[j];
+                    fx += x_bin[i] * Q_shared[Q_idx++] * x_bin[j];
                 }
             }
         }
     }
     fx_vals[x] = fx;
-
+    
 
 }
 
@@ -157,7 +142,13 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
 
+    extern __shared__ char shared_mem[];
+    Q_Type* Q_shared = (Q_Type*)shared_mem;
 
+    // Load Q into shared memory
+    for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
+        Q_shared[i] = Q_prime[i];
+    }
 
     bool x_bin[sizeof(x_dec_Type) * 8];// we might want to set a max N and max M and assign statically the memory as that value 
     //bool* x_bin = all_x_bin + x * N;
@@ -168,11 +159,11 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     
 
     fx_Type fx = 0;
-
+    int Q_idx = 0;
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
     for(dim_Type i = 0; i < N; i++){
         for(dim_Type j = i; j < N; j++){
-            fx += x_bin[i] * Q_prime[triang_index_gpu(i,j,N)] * x_bin[j];
+            fx += x_bin[i] * Q_prime[Q_idx++] * x_bin[j];
         }
     }
 

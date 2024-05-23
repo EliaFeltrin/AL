@@ -20,9 +20,19 @@
 #include <unordered_set>
 #include <cuda_runtime.h>
 #include <iostream>
+#include <iomanip>
 
 #include "types.h"
 #include "kernels.cu"
+
+#define DEBUG
+ 
+#ifndef DEBUG
+    #define RAND_GEN_INIT std::random_device rd; std::mt19937 g(rd());
+#else
+    unsigned long seed = 42;
+    #define RAND_GEN_INIT std::mt19937 g(seed++);
+#endif
 
 template <typename T>
 constexpr T max_val(){
@@ -189,8 +199,9 @@ void print_file_stdout(FILE *file, const char *format, ...);
 
 //NB: viene memorizzata solo la diagonale, pertanto Q è di lunghezza N
 void fill_Q_diag_lin(Q_Type* Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbund){
-    std::random_device rd;
-    std::mt19937 g(rd());
+    //std::random_device rd;
+    //std::mt19937 g(rd());
+    RAND_GEN_INIT
 
     for(dim_Type i = 0; i < N; i++){
         Q[i] = lowerbound + (upperbund-lowerbound)*((Q_Type)g()/g.max());
@@ -209,8 +220,10 @@ void fill_Q_id_lin(Q_Type* Q, const dim_Type N, const Q_Type not_used_1, const Q
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound){
     const unsigned int Q_len = N*(N+1)/2;
 
-    std::random_device rd;
-    std::mt19937 g(rd());
+    //std::random_device rd;
+    //std::mt19937 g(rd());
+    RAND_GEN_INIT
+
 
     for(unsigned int i = 0; i < Q_len; i++){
         Q[i] = lowerbound + (upperbound-lowerbound)*((Q_Type)g()/g.max());
@@ -236,8 +249,9 @@ void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const
         aux_vec[i] = -1;
     }
     
-    std::random_device rd;
-    std::mt19937 g(rd());
+    RAND_GEN_INIT
+    //std::random_device rd;
+    //std::mt19937 g(rd());
     
 
     std::shuffle(aux_vec.begin(), aux_vec.end(), g);
@@ -372,7 +386,8 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
     printf("A =\n");
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
-            printf("%3.0f ", A[i+j*M]);
+            //stampa A con il cout facendo in modo che i valori siano allineati (-1 e 0 non sono allineati)
+            std::cout << std::setw(2) << A[i+j*M] << " ";
         }
         printf("\n");
     }
@@ -381,7 +396,7 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
 void print_b(const b_Type* b, const dim_Type M){
     printf("b^T = [");
     for(dim_Type i = 0; i < M; i++){
-        printf("%.0f ", b[i]);
+        std::cout << std::setw(2) << b[i] << " "; 
     }
     printf("]\n");
 }
@@ -516,7 +531,6 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
         if(verbose || strong_verbose){
             printf("-------------------------------------------------------------\n");
-            //print Q, A, b
             print_Q(Q, N);
             print_A(A, M, N);
             print_b(b, M);
@@ -537,7 +551,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         int n_threads = min(N_THREADS, (int)pow(2,N));
         dim3 threads_per_block(n_threads);
 	    dim3 blocks_per_grid(pow(2,N)/n_threads);   
-        unsigned int shared_mem_size = N * M * sizeof(A_Type) +  N * N * sizeof(Q_Type);
+        unsigned int shared_mem_size = A_len * sizeof(A_Type) +  Q_len * sizeof(Q_Type);
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
@@ -561,10 +575,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
         if(strong_verbose){
             printf("Expected minimum found in x = [ ");
-            for(int i = 0; i < N; i++){
-                printf("%d ", expected_min_x[i]);
+            for(dim_Type i = 0; i < N; i++){
+                std::cout << expected_min_x[i] << " ";
             }
-            printf("] with value %.1f\n\n", true_min_val);
+            std::cout << "] with value " << true_min_val << std::endl << std::endl;
         }
 
         true_max_val = compute_max(Q, N);                                          //TO DO: calcolare il vero massimo
@@ -620,8 +634,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             //copy Q_plus_AT_A to GPU
             CHECK(cudaMemcpy(Q_gpu, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), cudaMemcpyHostToDevice));
 
-
-            brute_force_AL<<<blocks_per_grid, threads_per_block>>>(Q_gpu, N, fx_gpu);
+            unsigned int shared_mem_size = N*(N+1)/2 * sizeof(Q_Type);
+            brute_force_AL<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(Q_gpu, N, fx_gpu);
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 
@@ -648,9 +662,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
             
             if(strong_verbose){
-                printf("c_x_opt^T = [ ");
+                printf("c_x_opt^T = [");
                 for(int i = 0; i < M; i++){
-                    printf("%.5f ", c[i]);
+                    std::cout << std::setw(2) << c[i] << " ";
+                    //std::printf("%.5f ", c[i]);
                 }
                 printf("]\tx_opt = [ ");
                 for(int i = 0; i < N; i++){
@@ -716,7 +731,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 print_b(b, M);
                 printf("c = \n");
                 for(int i = 0; i < M; i++){
-                    printf("%.1f ", c[i]);
+                    std::cout << std::setw(2) << c[i] << " ";
+                    //printf("%.1f ", c[i]);
                 }
                 printf("\n");
                 return 0;
@@ -746,9 +762,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             }
 
             if(!strong_verbose){
-                printf("c_x^T =\t\t[\t");
+                printf("c_x^T =\t\t[");
                 for(int i = 0; i < M; i++){
-                    printf("%.1f\t", c[i]);
+                    std::cout << std::setw(2) << c[i] << " ";
+                    //printf("%.1f\t", c[i]);
                 }
                 printf("]\nlambda^T =\t[\t");
                 for(int i = 0; i < M; i++){
