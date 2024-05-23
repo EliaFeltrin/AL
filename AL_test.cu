@@ -285,7 +285,7 @@ void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_
 }
 
 
-void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Type* __restrict__ A, A_Type* __restrict__ Q_plus_AT_A, const dim_Type M, const dim_Type N){
+void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Type* __restrict__ A, Q_Type* __restrict__ Q_plus_AT_A, const dim_Type M, const dim_Type N){
     if(!Q_DIAG){
         for(dim_Type i = 0; i < N; i++){
             for(dim_Type j = i; j < N; j++){
