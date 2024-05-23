@@ -86,7 +86,7 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     }
 
 
-    double Ax_b[MAX_M_GPU] = {0};
+    b_Type Ax_b[MAX_M_GPU] = {0};
     //b_Type* Ax_b = all_Ax_b + x * M; //OLD METHOD OF ALLOCATING MEMORY BY PASSING IT AS A PARAMETER
 
     bool is_feasible = true;
@@ -121,10 +121,9 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
             }
         }else{
             
-            int Q_idx = 0;
+            unsigned int Q_idx = 0;
             //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
             for(dim_Type i = 0; i < N; i++){
-                #pragma unroll
                 for(dim_Type j = i; j < N; j++){
                     fx += x_bin[i] * Q_shared[Q_idx++] * x_bin[j];
                 }
@@ -160,10 +159,9 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     
 
     fx_Type fx = 0;
-    int Q_idx = 0;
+    unsigned int Q_idx = 0;
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
     for(dim_Type i = 0; i < N; i++){
-        #pragma unroll
         for(dim_Type j = i; j < N; j++){
             fx += x_bin[i] * Q_prime_shared[Q_idx++] * x_bin[j];
         }
