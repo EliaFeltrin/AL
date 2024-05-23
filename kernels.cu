@@ -58,16 +58,22 @@ __global__ void brute_force(const Q_Type* __restrict__ Q, const A_Type* __restri
     Q_Type* Q_shared = (Q_Type*)(shared_mem + M * N *sizeof(A_Type)); //dimensione N*N
 
 
-
-    // Load Q into shared memory
-    for (unsigned int i = threadIdx.x; i < N * N; i += blockDim.x) {
-        Q_shared[i] = Q[i];
-    }
-
     // Load A into shared memory
     for (unsigned int i = threadIdx.x; i < N * M; i += blockDim.x) {
         A_shared[i] = A[i];
     }
+
+    // Load Q into shared memory
+    if(Q_DIAG){
+        for (unsigned int i = threadIdx.x; i < N; i += blockDim.x) {
+            Q_shared[i] = Q[i];
+        }
+    }else{
+        for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
+            Q_shared[i] = Q[i];
+        }
+    }
+    
 
     __syncthreads();
     
@@ -136,7 +142,13 @@ __global__ void brute_force_AL(const Q_Type* __restrict__ Q_prime, const dim_Typ
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
 
+    extern __shared__ char shared_mem[];
+    Q_Type* Q_shared = (Q_Type*)shared_mem;
 
+    // Load Q into shared memory
+    for (unsigned int i = threadIdx.x; i < N * (N+1)/2; i += blockDim.x) {
+        Q_shared[i] = Q_prime[i];
+    }
 
     bool x_bin[sizeof(x_dec_Type) * 8];// we might want to set a max N and max M and assign statically the memory as that value 
     //bool* x_bin = all_x_bin + x * N;
