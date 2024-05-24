@@ -1,0 +1,28 @@
+"Device","Kernel","Invocations","Metric Name","Metric Description","Min","Max","Avg"
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"inst_executed_global_loads","Warp level instructions for global loads",0,0,0
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"gld_transactions","Global Load Transactions",2,2,2
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"gst_transactions","Global Store Transactions",131072,131072,131072
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"shared_load_transactions","Shared Load Transactions",4423680,4423680,4423680
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"shared_store_transactions","Shared Store Transactions",4751360,4751360,4751360
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"l2_read_transactions","L2 Read Transactions",176,176,176
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"l2_write_transactions","L2 Write Transactions",131085,131085,131085
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"dram_read_transactions","Device Memory Read Transactions",78,78,78
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"dram_write_transactions","Device Memory Write Transactions",130858,130858,130858
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"inst_executed_global_loads","Warp level instructions for global loads",33792,33792,33792
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"gld_transactions","Global Load Transactions",528386,528386,528386
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"gst_transactions","Global Store Transactions",1027,1073,1038
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"shared_load_transactions","Shared Load Transactions",75776,87798,77779
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"shared_store_transactions","Shared Store Transactions",65536,89580,69543
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"l2_read_transactions","L2 Read Transactions",162170,162424,162319
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"l2_write_transactions","L2 Write Transactions",31138,31272,31197
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"dram_read_transactions","Device Memory Read Transactions",131078,131110,131083
+"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"dram_write_transactions","Device Memory Write Transactions",23,113,97
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"inst_executed_global_loads","Warp level instructions for global loads",0,0,0
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"gld_transactions","Global Load Transactions",2,2,2
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"gst_transactions","Global Store Transactions",131072,131072,131072
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"shared_load_transactions","Shared Load Transactions",0,0,0
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"shared_store_transactions","Shared Store Transactions",0,0,0
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"l2_read_transactions","L2 Read Transactions",96,192,115
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"l2_write_transactions","L2 Write Transactions",131085,131085,131085
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"dram_read_transactions","Device Memory Read Transactions",38,86,47
+"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"dram_write_transactions","Device Memory Write Transactions",130467,130914,130780

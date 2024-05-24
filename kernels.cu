@@ -57,13 +57,6 @@ __global__ void brute_force( //input
     
     extern __shared__ char shared_mem[];
 
-    //bool x_bin[MAX_N_GPU]; 
-    
-    // #pragma unroll
-    // for(dim_Type i = 0; i < N; i++){
-    //     x_bin[i] = (x >> i) & 1;
-    // }
-
 
     //b_Type Ax_b[MAX_M_GPU] = {0};
     b_Type* Ax_b = (b_Type*) shared_mem;

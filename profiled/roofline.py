@@ -2,9 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 
-import pandas as pd
-import matplotlib.pyplot as plt
-
 # Funzione per parsare il file di output di nvprof
 def parse_nvprof_output(file_path):
     with open(file_path, 'r') as file:
