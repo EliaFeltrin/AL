@@ -94,15 +94,23 @@ __global__ void brute_force( //input
         fx = 0;
         if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
             for(dim_Type i = 0; i < N; i++){
-                fx += Q_const[i] * ((x >> i) & 0b1);
+                if((x >> i) & 0b1)
+                    fx += Q_const[i];
             }
         }else{
             
             int Q_idx = 0;
             //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
             for(dim_Type i = 0; i < N; i++){
-                for(dim_Type j = i; j < N; j++){
-                    fx += ((x >> i) & 0b1) * Q_const[Q_idx++] * ((x >> j) & 0b1);
+
+                if((x >> i) & 0b1){
+                    for(dim_Type j = i; j < N; j++){
+                        if((x >> j) & 0b1)
+                            fx +=  Q_const[Q_idx];
+                        Q_idx++;
+                    }
+                }else{
+                    Q_idx += N - i;
                 }
             }
         }
@@ -117,13 +125,20 @@ __global__ void brute_force_AL(const dim_Type N, //input
                                fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     fx_Type fx = 0;
     int Q_idx = 0;
+    
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
     for(dim_Type i = 0; i < N; i++){
-        for(dim_Type j = i; j < N; j++){
-            fx += ((x >> i) & 0b1) * Q_const[Q_idx++] * ((x >> j) & 0b1);
+        if((x >> i) & 0b1){
+            for(dim_Type j = i; j < N; j++){
+                if((x >> j) & 0b1)
+                    fx +=  Q_const[Q_idx];
+                Q_idx++;
+            }
+        }else{
+            Q_idx += N - i;
         }
     }
 

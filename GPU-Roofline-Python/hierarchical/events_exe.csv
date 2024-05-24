@@ -1,4 +1,0 @@
-"Device","Kernel","Invocations","Event Name","Min","Max","Avg","Total"
-"NVIDIA GeForce GTX 1050 Ti (0)","brute_force(unsigned char, unsigned char, bool, float*)",1,"thread_inst_executed",2398406626,2398406626,2398406626,2398406626
-"NVIDIA GeForce GTX 1050 Ti (0)","reduce_argmin(float*, float*, unsigned int*)",6,"thread_inst_executed",42606584,42607854,42607069,255642414
-"NVIDIA GeForce GTX 1050 Ti (0)","brute_force_AL(unsigned char, float*)",5,"thread_inst_executed",1686110208,1686110208,1686110208,8430551040
