@@ -132,7 +132,7 @@ __global__ void brute_force( //input
         printf("current x_min: %d, current fx_min: %f\n", x_argmin, fx_min);
     }
 
-    
+    printf("writing index %d\n", blockIdx.x * blockDim.x + threadIdx.x);
     fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
     x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
 
