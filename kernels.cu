@@ -13,7 +13,7 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
-#define COARSENING 0
+#define COARSENING 1
 
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
@@ -56,17 +56,19 @@ __global__ void brute_force( //input
                             fx_Type* __restrict__ fx_vals, x_dec_Type* __restrict__ x_min) { //output
     
     const x_dec_Type stride = pow(2, COARSENING);
-    const unsigned long x_start = blockIdx.x * blockDim.x + (threadIdx.x * stride);
+    const x_dec_Type x_start = (blockIdx.x * blockDim.x + threadIdx.x) * stride;
+    //printf("blockIdx.x: %d\t blockDim.x: %d\t threadIdx.x: %d\t x_start: %d\n", blockIdx.x, blockDim.x, threadIdx.x, x_start);
+    //printf("x_start: %d\n", x_start);
 
     fx_Type fx_min = std::numeric_limits<fx_Type>::max();
-    x_dec_Type x_argmin = 0;
+    x_dec_Type x_argmin = x_start;
     
     extern __shared__ char shared_mem[];
     b_Type* Ax_b_shared = (b_Type*) shared_mem;
 
     
-    for(int x = x_start; x < x_start + stride; x++){
-        
+    for(x_dec_Type x = x_start; x < x_start + stride; x++){
+
         //fill Ax_b_shared with zeros
         for(dim_Type i = 0; i < M; i++){
             Ax_b_shared[i * blockDim.x + threadIdx.x] = 0;
@@ -97,6 +99,8 @@ __global__ void brute_force( //input
 
         fx_Type fx = std::numeric_limits<fx_Type>::max();
 
+
+        // POSSIAMO FERMARCI QUANDO X >> i == 0 PERCHÈ TANTO POI SONO TUTTI ZERI STESSA COSA CON X >> j == 0           <<<<<<<<<<<<<<<<<<
         if(is_feasible){
             fx = 0;
             if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
@@ -123,17 +127,13 @@ __global__ void brute_force( //input
             }
         }
 
-        printf("%ld\tcurrent x: %d, current fx: %f\n", x_start, x, fx);
-
         if(fx < fx_min){
             fx_min = fx;
             x_argmin = x;
         }
 
-        printf("%ld\tcurrent x_min: %d, current fx_min: %f\n",x_start, x_argmin, fx_min);
     }
 
-    printf("%ld\twriting index %d\n",x_start, blockIdx.x * blockDim.x + threadIdx.x);
     fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
     x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
 
@@ -145,13 +145,13 @@ __global__ void brute_force_AL(const dim_Type N, //input
                                fx_Type* __restrict__ fx_vals, x_dec_Type* __restrict__ x_min) { //output
     
     const x_dec_Type stride = pow(2, COARSENING);
-    const unsigned long x_start = blockIdx.x * blockDim.x + (threadIdx.x * stride);
+    const x_dec_Type x_start = (blockIdx.x * blockDim.x + threadIdx.x) * stride;
 
     fx_Type fx_min = std::numeric_limits<fx_Type>::max();
     x_dec_Type x_argmin = 0;
 
 
-    for(int x = x_start; x < x_start + stride; x++){
+    for(x_dec_Type x = x_start; x < x_start + stride; x++){
         fx_Type fx = 0;
         int Q_idx = 0;
 
@@ -168,18 +168,16 @@ __global__ void brute_force_AL(const dim_Type N, //input
             }
         }
 
-        printf("%ld AL\tcurrent x: %d, current fx: %f\n", x_start, x, fx);
-
+       
         if(fx < fx_min){
             fx_min = fx;
             x_argmin = x;
         }
 
-        printf("%ld AL\tcurrent x_min: %d, current fx_min: %f\n",x_start, x_argmin, fx_min);
-    
+       
     }
     
-    printf("%ld AL\twriting index %d\n",x_start, blockIdx.x * blockDim.x + threadIdx.x);
+    //printf("%ld AL\twriting index %d\n",x_start, blockIdx.x * blockDim.x + threadIdx.x);
 
     fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
     x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
@@ -226,7 +224,7 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restric
 
   	// Write result for this block to global memory
   	if (i == 0) {
-        printf("Block min: %f, x: %d\n", s_input[0], s_x[0]);
+        //printf("Block min: %f, x: %d\n", s_input[0], s_x[0]);
         atomicMin(min, x_min, s_input[0], s_x[0]);
   	}
 
