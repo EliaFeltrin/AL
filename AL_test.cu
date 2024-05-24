@@ -497,6 +497,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     //b_Type*     Ax_b_buffer_gpu;  //buffer
 
     fx_Type*    fx_gpu; // output / input
+    x_dec_Type* xs_min_gpu; //output / input
     
     x_dec_Type* x_min_gpu; //output
     fx_Type*    fx_min_gpu; //output
@@ -511,7 +512,8 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     // CHECK(cudaMalloc(&Ax_b_buffer_gpu, M * sizeof(b_Type) * pow(2,N))); //for each thread (thus each x) a buffer of M b_Type
 
     
-    CHECK(cudaMalloc(&fx_gpu, pow(2,N) * sizeof(fx_Type)));
+    CHECK(cudaMalloc(&fx_gpu, pow(2,N - COARSENING) * sizeof(fx_Type)));
+    CHECK(cudaMalloc(&xs_min_gpu, pow(2,N - COARSENING) * sizeof(x_dec_Type)));
     
     CHECK(cudaMalloc(&x_min_gpu, sizeof(x_dec_Type)));
     CHECK(cudaMalloc(&fx_min_gpu, sizeof(fx_Type)));
@@ -546,19 +548,19 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         CHECK(cudaMemcpyToSymbol(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice));
 
 
-        int n_threads = min(N_THREADS, (int)pow(2,N));
+        int n_threads = min(N_THREADS, (int)pow(2, N - COARSENING));
         dim3 threads_per_block(n_threads);
-	    dim3 blocks_per_grid(pow(2,N)/n_threads);   
-        const int shared_mem_size = N_THREADS * M * sizeof(b_Type);
+	    dim3 blocks_per_grid(pow(2, N - COARSENING) / n_threads);   
+        const int shared_mem_size = n_threads * M * sizeof(b_Type);
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(N, M, Q_DIAG, fx_gpu);
+        brute_force<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(N, M, Q_DIAG, fx_gpu, xs_min_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
 
-        reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, fx_min_gpu, x_min_gpu);
+        reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, xs_min_gpu, fx_min_gpu, x_min_gpu);
         CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
@@ -631,11 +633,11 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             //copy Q_plus_AT_A to GPU
             CHECK(cudaMemcpyToSymbol(Q_const, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
 
-            brute_force_AL<<<blocks_per_grid, threads_per_block,shared_mem_size>>>(N, fx_gpu);
+            brute_force_AL<<<blocks_per_grid, threads_per_block>>>(N, fx_gpu, xs_min_gpu);
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 
-            reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, fx_min_gpu, x_min_gpu);
+            reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, xs_min_gpu, fx_min_gpu, x_min_gpu);
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 

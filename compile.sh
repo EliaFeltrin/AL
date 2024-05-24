@@ -88,7 +88,7 @@ elif [ $COMMAND == "run" ]; then
     # Run only
     clear
     echo "Running CUDA program $CUDA_FILE"
-    ./exe $EXEC_FLAGS
+    ./exe $EXEC_FLAGS -f
     exit 0
 else
     echo "Usage: $0 <all|compile|profile> <CUDA_SOURCE_FILE>"

@@ -13,6 +13,8 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
+#define COARSENING 4
+
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
 __constant__ Q_Type Q_const[MAX_N_GPU * (MAX_N_GPU + 1) / 2];
@@ -51,105 +53,131 @@ __device__ __forceinline__ void atomicMin(fx_Type * addr_min, x_dec_Type* addr_a
 
 __global__ void brute_force( //input
                             const dim_Type N, const dim_Type M, const bool Q_DIAG, //consts
-                            fx_Type* __restrict__ fx_vals) { //output
+                            fx_Type* __restrict__ fx_vals, x_dec_Type* __restrict__ x_min) { //output
     
-    const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
+    const x_dec_Type stride = pow(2, COARSENING);
+    const unsigned long x_start = blockIdx.x * blockDim.x + (threadIdx.x * stride);
+
+    fx_Type fx_min = std::numeric_limits<fx_Type>::max();
+    x_dec_Type x_argmin = 0;
     
     extern __shared__ char shared_mem[];
-
-
-    //b_Type Ax_b[MAX_M_GPU] = {0};
-    b_Type* Ax_b = (b_Type*) shared_mem;
-    //fill Ax_b with zeros
-    for(dim_Type i = 0; i < M; i++){
-        Ax_b[i * blockDim.x + threadIdx.x] = 0;
-    }
-
-
-    bool is_feasible = true;
-    //RISCRIVIAMO A*x - b facendo in modo che se x == 0 skippiamo i conti
-    #pragma unroll 
-    for(dim_Type i = 0; i < N; i++){
-        if(((x >> i) & 0b1) != 0){
-            for(dim_Type j = 0; j < M; j++){
-                Ax_b[j * blockDim.x + threadIdx.x] += A_const[j + i*M];
-            }    
-        }
-    } 
-
-    //check if x is feasible
-    #pragma unroll
-    for(dim_Type i = 0; i < M; i++){
-        Ax_b[i * blockDim.x + threadIdx.x] -= b_const[i];
-
-        if(Ax_b[i * blockDim.x + threadIdx.x] > 0){
-            is_feasible = false;
-        }
-    }
-
-
-    fx_Type fx = std::numeric_limits<fx_Type>::max();
+    b_Type* Ax_b_shared = (b_Type*) shared_mem;
     
-    if(is_feasible){
-        fx = 0;
-        if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
-            for(dim_Type i = 0; i < N; i++){
-                if((x >> i) & 0b1)
-                    fx += Q_const[i];
-            }
-        }else{
-            
-            int Q_idx = 0;
-            //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
-            for(dim_Type i = 0; i < N; i++){
+    for(int x = x_start; x < x_start + stride; x++){
+        
+        //fill Ax_b_shared with zeros
+        for(dim_Type i = 0; i < M; i++){
+            Ax_b_shared[i * blockDim.x + threadIdx.x] = 0;
+        }
 
-                if((x >> i) & 0b1){
-                    for(dim_Type j = i; j < N; j++){
-                        if((x >> j) & 0b1)
-                            fx +=  Q_const[Q_idx];
-                        Q_idx++;
+
+        bool is_feasible = true;
+        //RISCRIVIAMO A*x - b facendo in modo che se x == 0 skippiamo i conti
+        #pragma unroll 
+        for(dim_Type i = 0; i < N; i++){
+            if(((x >> i) & 0b1) != 0){
+                for(dim_Type j = 0; j < M; j++){
+                    Ax_b_shared[j * blockDim.x + threadIdx.x] += A_const[j + i*M];
+                }    
+            }
+        } 
+
+        //check if x is feasible
+        #pragma unroll
+        for(dim_Type i = 0; i < M; i++){
+            Ax_b_shared[i * blockDim.x + threadIdx.x] -= b_const[i];
+
+            if(Ax_b_shared[i * blockDim.x + threadIdx.x] > 0){
+                is_feasible = false;
+            }
+        }
+
+
+        fx_Type fx = std::numeric_limits<fx_Type>::max();
+
+        if(is_feasible){
+            fx = 0;
+            if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
+                for(dim_Type i = 0; i < N; i++){
+                    if((x >> i) & 0b1)
+                        fx += Q_const[i];
+                }
+            }else{
+
+                int Q_idx = 0;
+                //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
+                for(dim_Type i = 0; i < N; i++){
+
+                    if((x >> i) & 0b1){
+                        for(dim_Type j = i; j < N; j++){
+                            if((x >> j) & 0b1)
+                                fx +=  Q_const[Q_idx];
+                            Q_idx++;
+                        }
+                    }else{
+                        Q_idx += N - i;
                     }
-                }else{
-                    Q_idx += N - i;
                 }
             }
         }
+
+        if(fx < fx_min){
+            fx_min = fx;
+            x_argmin = x;
+        }
+
     }
-    fx_vals[x] = fx;
+
+    
+    fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
+    x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
 
 }
 
 
 
 __global__ void brute_force_AL(const dim_Type N, //input
-                               fx_Type* __restrict__ fx_vals) { //output
+                               fx_Type* __restrict__ fx_vals, x_dec_Type* __restrict__ x_min) { //output
     
-    const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
+    const x_dec_Type stride = pow(2, COARSENING);
+    const unsigned long x_start = blockIdx.x * blockDim.x + (threadIdx.x * stride);
 
-    fx_Type fx = 0;
-    int Q_idx = 0;
-    
-    //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
-    for(dim_Type i = 0; i < N; i++){
-        if((x >> i) & 0b1){
-            for(dim_Type j = i; j < N; j++){
-                if((x >> j) & 0b1)
-                    fx +=  Q_const[Q_idx];
-                Q_idx++;
+    fx_Type fx_min = std::numeric_limits<fx_Type>::max();
+    x_dec_Type x_argmin = 0;
+
+    for(int x = x_start; x < x_start + stride; x++){
+        fx_Type fx = 0;
+        int Q_idx = 0;
+
+        //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
+        for(dim_Type i = 0; i < N; i++){
+            if((x >> i) & 0b1){
+                for(dim_Type j = i; j < N; j++){
+                    if((x >> j) & 0b1)
+                        fx +=  Q_const[Q_idx];
+                    Q_idx++;
+                }
+            }else{
+                Q_idx += N - i;
             }
-        }else{
-            Q_idx += N - i;
         }
-    }
 
+        if(fx < fx_min){
+            fx_min = fx;
+            x_argmin = x;
+        }
     
-    fx_vals[x] = fx;
+    }
+    
+    fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
+    x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
 
 }
 
 
 
-__global__ void reduce_argmin(fx_Type* __restrict__ input, fx_Type* __restrict__ min, x_dec_Type* __restrict__ x_min){
+__global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restrict__ x_input, fx_Type* __restrict__ min, x_dec_Type* __restrict__ x_min){
 
   	// Declare shared memory of N_THREADS elements
   	__shared__ fx_Type s_input[N_THREADS]; // Shared memory for the block
@@ -161,11 +189,12 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, fx_Type* __restrict__
 
   	// Offset the pointers to the correct block
   	input += blockDim.x * blockIdx.x;
+    x_input += blockDim.x * blockIdx.x;
 
   	// perform first reduction step to copy the data from global memory to shared memory
   	
   	s_input[i] = input[i];
-    s_x[i] = threadIdx.x + blockIdx.x * blockDim.x;
+    s_x[i] = x_input[i];
 
 
     if(threadIdx.x + blockIdx.x * blockDim.x == 0){
