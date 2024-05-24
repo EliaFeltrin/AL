@@ -122,11 +122,14 @@ __global__ void brute_force( //input
             }
         }
 
+        printf("current x: %d, current fx: %f\n", x, fx);
+
         if(fx < fx_min){
             fx_min = fx;
             x_argmin = x;
         }
 
+        printf("current x_min: %d, current fx_min: %f\n", x_argmin, fx_min);
     }
 
     
