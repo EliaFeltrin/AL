@@ -13,6 +13,8 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
+#define PAD 0
+
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
 __constant__ Q_Type Q_const[MAX_N_GPU * (MAX_N_GPU + 1) / 2];
@@ -62,7 +64,7 @@ __global__ void brute_force( //input
     b_Type* Ax_b = (b_Type*) shared_mem;
     //fill Ax_b with zeros
     for(dim_Type i = 0; i < M; i++){
-        Ax_b[i * blockDim.x + threadIdx.x] = 0;
+        Ax_b[i * (blockDim.x + PAD) + threadIdx.x] = 0;
     }
 
 
@@ -72,7 +74,7 @@ __global__ void brute_force( //input
     for(dim_Type i = 0; i < N; i++){
         if(((x >> i) & 0b1) != 0){
             for(dim_Type j = 0; j < M; j++){
-                Ax_b[j * blockDim.x + threadIdx.x] += A_const[j + i*M];
+                Ax_b[j * (blockDim.x + PAD) + threadIdx.x] += A_const[j + i*M];
             }    
         }
     } 
@@ -80,9 +82,9 @@ __global__ void brute_force( //input
     //check if x is feasible
     #pragma unroll
     for(dim_Type i = 0; i < M; i++){
-        Ax_b[i * blockDim.x + threadIdx.x] -= b_const[i];
+        Ax_b[i * (blockDim.x + PAD) + threadIdx.x] -= b_const[i];
 
-        if(Ax_b[i * blockDim.x + threadIdx.x] > 0){
+        if(Ax_b[i * (blockDim.x + PAD) + threadIdx.x] > 0){
             is_feasible = false;
         }
     }
@@ -117,7 +119,7 @@ __global__ void brute_force_AL(const dim_Type N, //input
                                fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     fx_Type fx = 0;
     int Q_idx = 0;
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
