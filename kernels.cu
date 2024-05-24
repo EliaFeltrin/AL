@@ -63,6 +63,7 @@ __global__ void brute_force( //input
     
     extern __shared__ char shared_mem[];
     b_Type* Ax_b_shared = (b_Type*) shared_mem;
+
     
     for(int x = x_start; x < x_start + stride; x++){
         
@@ -122,17 +123,17 @@ __global__ void brute_force( //input
             }
         }
 
-        printf("current x: %d, current fx: %f\n", x, fx);
+        printf("%ld\tcurrent x: %d, current fx: %f\n", x_start, x, fx);
 
         if(fx < fx_min){
             fx_min = fx;
             x_argmin = x;
         }
 
-        printf("current x_min: %d, current fx_min: %f\n", x_argmin, fx_min);
+        printf("%ld\tcurrent x_min: %d, current fx_min: %f\n",x_start, x_argmin, fx_min);
     }
 
-    printf("writing index %d\n", blockIdx.x * blockDim.x + threadIdx.x);
+    printf("%ld\twriting index %d\n",x_start, blockIdx.x * blockDim.x + threadIdx.x);
     fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
     x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
 
@@ -148,6 +149,7 @@ __global__ void brute_force_AL(const dim_Type N, //input
 
     fx_Type fx_min = std::numeric_limits<fx_Type>::max();
     x_dec_Type x_argmin = 0;
+
 
     for(int x = x_start; x < x_start + stride; x++){
         fx_Type fx = 0;
@@ -166,13 +168,19 @@ __global__ void brute_force_AL(const dim_Type N, //input
             }
         }
 
+        printf("%ld AL\tcurrent x: %d, current fx: %f\n", x_start, x, fx);
+
         if(fx < fx_min){
             fx_min = fx;
             x_argmin = x;
         }
+
+        printf("%ld AL\tcurrent x_min: %d, current fx_min: %f\n",x_start, x_argmin, fx_min);
     
     }
     
+    printf("%ld AL\twriting index %d\n",x_start, blockIdx.x * blockDim.x + threadIdx.x);
+
     fx_vals[blockIdx.x * blockDim.x + threadIdx.x] = fx_min;
     x_min[blockIdx.x * blockDim.x + threadIdx.x] = x_argmin;
 
