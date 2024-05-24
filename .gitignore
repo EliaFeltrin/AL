@@ -1,6 +1,10 @@
-GPU-Roofline-Python
+GPU-Roofline-Python/*
 virtualenv
 results
 exe
 .vscode/settings.json
 profiled/metrics.txt
+
+!GPU-Roofline-Python/roofline*.png
+
+GPU-Roofline-Python/*/
