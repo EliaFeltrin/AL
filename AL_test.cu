@@ -534,7 +534,6 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             print_Q(Q, N);
             print_A(A, M, N);
             print_b(b, M);
-            printf("Coarsening level: %d\n", COARSENING);
         }
 
 

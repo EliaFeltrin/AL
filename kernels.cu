@@ -13,7 +13,7 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
-#define COARSENING 8
+#define COARSENING 1
 
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
@@ -66,8 +66,6 @@ __global__ void brute_force( //input
     extern __shared__ char shared_mem[];
     b_Type* Ax_b_shared = (b_Type*) shared_mem;
 
-    const dim_Type max_N = log2(x_start + stride) + 1;
-
     
     for(x_dec_Type x = x_start; x < x_start + stride; x++){
 
@@ -80,7 +78,7 @@ __global__ void brute_force( //input
         bool is_feasible = true;
         //RISCRIVIAMO A*x - b facendo in modo che se x == 0 skippiamo i conti
         #pragma unroll 
-        for(dim_Type i = 0; i < max_N; i++){
+        for(dim_Type i = 0; i < N; i++){
             if(((x >> i) & 0b1) != 0){
                 for(dim_Type j = 0; j < M; j++){
                     Ax_b_shared[j * blockDim.x + threadIdx.x] += A_const[j + i*M];
@@ -106,9 +104,7 @@ __global__ void brute_force( //input
         if(is_feasible){
             fx = 0;
             if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
-                
-                
-                for(dim_Type i = 0; i < max_N; i++){
+                for(dim_Type i = 0; i < N; i++){
                     if((x >> i) & 0b1)
                         fx += Q_const[i];
                 }
@@ -116,15 +112,14 @@ __global__ void brute_force( //input
 
                 int Q_idx = 0;
                 //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
-                for(dim_Type i = 0; i < max_N; i++){
+                for(dim_Type i = 0; i < N; i++){
 
                     if((x >> i) & 0b1){
-                        for(dim_Type j = i; j < max_N; j++){
+                        for(dim_Type j = i; j < N; j++){
                             if((x >> j) & 0b1)
                                 fx +=  Q_const[Q_idx];
                             Q_idx++;
                         }
-                        Q_idx += N - max_N ;
                     }else{
                         Q_idx += N - i;
                     }
@@ -155,22 +150,19 @@ __global__ void brute_force_AL(const dim_Type N, //input
     fx_Type fx_min = std::numeric_limits<fx_Type>::max();
     x_dec_Type x_argmin = 0;
 
-    const dim_Type max_N = log2(x_start + stride) + 1;
 
     for(x_dec_Type x = x_start; x < x_start + stride; x++){
         fx_Type fx = 0;
         int Q_idx = 0;
 
         //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
-        for(dim_Type i = 0; i < max_N; i++){
-            
+        for(dim_Type i = 0; i < N; i++){
             if((x >> i) & 0b1){
-                for(dim_Type j = i; j < max_N; j++){
+                for(dim_Type j = i; j < N; j++){
                     if((x >> j) & 0b1)
                         fx +=  Q_const[Q_idx];
                     Q_idx++;
                 }
-                Q_idx += N - max_N ;
             }else{
                 Q_idx += N - i;
             }
