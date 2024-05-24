@@ -117,21 +117,13 @@ __global__ void brute_force_AL(const dim_Type N, //input
                                fx_Type* __restrict__ fx_vals) { //output
     
     const unsigned long x = blockIdx.x * blockDim.x + threadIdx.x;
-
-    //bool x_bin[MAX_N_GPU];// we might want to set a max N and max M and assign statically the memory as that value 
-    //bool* x_bin = all_x_bin + x * N;
     
-    // for(dim_Type i = 0; i < N; i++){
-    //     x_bin[i] = (x >> i) & 1;
-    // }
-    
-
     fx_Type fx = 0;
     int Q_idx = 0;
     //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
     for(dim_Type i = 0; i < N; i++){
         for(dim_Type j = i; j < N; j++){
-            fx += ((x >> i) & 0b1) * Q_const[Q_idx++] * ((x >> i) & 0b1);
+            fx += ((x >> i) & 0b1) * Q_const[Q_idx++] * ((x >> j) & 0b1);
         }
     }
 
