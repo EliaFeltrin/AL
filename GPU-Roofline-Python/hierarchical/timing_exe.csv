@@ -1,7 +1,7 @@
 "Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
 ,%,ms,,ms,ms,ms,
-"GPU activities",42.585875,7.775809,5,1.555161,1.554521,1.555738,"brute_force_AL(unsigned char, float*)"
-"GPU activities",33.584645,6.132263,1,6.132263,6.132263,6.132263,"brute_force(unsigned char, unsigned char, bool, float*)"
-"GPU activities",23.763935,4.339087,6,0.723181,0.719005,0.725597,"reduce_argmin(float*, float*, unsigned int*)"
-"GPU activities",0.053102,0.009696,12,0.000808,0.000672,0.001088,"[CUDA memcpy DtoH]"
-"GPU activities",0.012443,0.002272,8,0.000284,0.000224,0.000320,"[CUDA memcpy HtoD]"
+"GPU activities",56.464498,41.937645,5,8.387529,8.383907,8.392866,"brute_force_AL(unsigned char, float*)"
+"GPU activities",23.105602,17.161129,6,2.860188,2.851479,2.866551,"reduce_argmin(float*, float*, unsigned int*)"
+"GPU activities",20.414088,15.162072,1,15.162072,15.162072,15.162072,"brute_force(unsigned char, unsigned char, bool, float*)"
+"GPU activities",0.012668,0.009409,12,0.000784,0.000672,0.001056,"[CUDA memcpy DtoH]"
+"GPU activities",0.003144,0.002335,8,0.000291,0.000224,0.000320,"[CUDA memcpy HtoD]"

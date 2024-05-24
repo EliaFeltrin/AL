@@ -316,6 +316,7 @@ def app_char(kernel_stats, kernel_name, metrics_file, graph, memories, profiler,
         graph.plot(hbm_intensity, hbm_performance, color=color, marker = marker, label=label)
 
 
+#take parameters from command line
 if __name__ == "__main__":
 
     ## Define dictionaries for colors, markers, labels ##
@@ -363,10 +364,8 @@ if __name__ == "__main__":
     ## For hierarchical roofline provide single kernel  ##
     ## otherwise provide multiple kernels               ##     
 
-    #kernels = ["brute_force(unsigned char, unsigned char, bool, float*)", "reduce_argmin(float*, float*, unsigned int*)", "brute_force_AL(unsigned char, float*)"]
-    kernels = ["brute_force(unsigned char, unsigned char, bool, float*)"]
-    #kernels = ["reduce_argmin(float*, float*, unsigned int*)"]
-    #kernels = ["brute_force_AL(unsigned char, float*)"]
+    kernelss = ["brute_force(unsigned char, unsigned char, bool, float*)", "reduce_argmin(float*, float*, unsigned int*)", "brute_force_AL(unsigned char, float*)"]
+
 
     ## Define Memories for ceilings ##
 
@@ -379,34 +378,41 @@ if __name__ == "__main__":
     memories_plot = [l1, l2, hbm]
 
     ## Define graph elements ##
+    names = ["Brute Force", "Argmin", "Brute Force AL"]
 
-    title = f"Kernel Brute Force Performance on 1050 ti Mobile"
-    figname = f"roofline_kernels_bruteforce.png"
-
-    ## Define rooflinemode           ##
-    ## (0: hierarchical for 1 kernel ##
-    ##  1: multiple kernels)         ##
-
-    mode = 0
     
-
-    ax, fig = create_graph(memories_ceil)
     
-
-    for kernel_name in kernels:
-        kernel_stats = {}
-
-        timing(kernel_stats, kernel_name, timings, profiler)
-
-        find_inst(kernel_stats, kernel_name, events, profiler)
-
-        app_char(kernel_stats, kernel_name, metrics, ax, memories_plot, profiler, labels, colors, markers, mode)
+    for name, kernels in zip(names, kernelss):
+        print(f"Plotting {name} Kernel: {kernels}")
         
-        # add legend
-        ax.legend(loc='upper left', fontsize='10')
+        title = f"Kernel {name} Performance on 1050 ti Mobile"
+        figname = f"roofline_kernels_{name}_with_if.png"           #CHANGE ACCORDINGLY TO THE VERSION OF THE KERNEL
 
 
-    ax.set_title(title)
-    ax.grid(True)
+        ## Define rooflinemode           ##
+        ## (0: hierarchical for 1 kernel ##
+        ##  1: multiple kernels)         ##
 
-    fig.savefig(figname, bbox_inches="tight")
+        mode = 0
+
+
+        ax, fig = create_graph(memories_ceil)
+
+
+        for kernel_name in [kernels]:
+            kernel_stats = {}
+
+            timing(kernel_stats, kernel_name, timings, profiler)
+
+            find_inst(kernel_stats, kernel_name, events, profiler)
+
+            app_char(kernel_stats, kernel_name, metrics, ax, memories_plot, profiler, labels, colors, markers, mode)
+
+            # add legend
+            ax.legend(loc='upper left', fontsize='10')
+
+
+        ax.set_title(title)
+        ax.grid(True)
+
+        fig.savefig(figname, bbox_inches="tight")
