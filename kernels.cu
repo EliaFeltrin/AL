@@ -13,7 +13,7 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
-#define COARSENING 4
+#define COARSENING 0
 
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
@@ -215,7 +215,7 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restric
 
   	// Write result for this block to global memory
   	if (i == 0) {
-        //printf("Block min: %f, x: %d\n", s_input[0], s_x[0]);
+        printf("Block min: %f, x: %d\n", s_input[0], s_x[0]);
         atomicMin(min, x_min, s_input[0], s_x[0]);
   	}
 
