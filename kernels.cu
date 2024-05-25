@@ -220,7 +220,7 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restric
   	}
 
   	// Write result for this block to global memory
-  	if (i == 0) {
+  	if (i == 0 && output[blockIdx.x] > s_input[0]) {
         output[blockIdx.x] = s_input[0];
         x_output[blockIdx.x] = s_x[0];
         

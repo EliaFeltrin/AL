@@ -21,6 +21,7 @@
 #include <cuda_runtime.h>
 #include <iostream>
 #include <iomanip>
+#include <math.h>
 
 #include "types.h"
 #include "kernels.cu"
@@ -569,7 +570,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             CHECK_KERNELCALL();
 	        CHECK(cudaDeviceSynchronize());
 
-            input_size >>= 10;
+            input_size >>= (int)log2(N_THREADS_ARGMIN);
         }
 
         
@@ -658,7 +659,8 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 CHECK_KERNELCALL();
 	            CHECK(cudaDeviceSynchronize());
 
-                input_size >>= 10;
+
+                input_size >>= (int)log2(N_THREADS_ARGMIN);
             }
         
             CHECK_KERNELCALL();
