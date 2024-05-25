@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import griddata
+
+surface = False
 
 # Directory containing the CSV files
 folder_path = 'coarse_test'
@@ -37,12 +40,23 @@ for file_name in os.listdir(folder_path):
         avg_brute_force_values.append(avg_brute_force)
         avg_brute_force_AL_values.append(avg_brute_force_AL)
 
+# Create grid data for interpolation
+N_grid, K_grid = np.meshgrid(np.arange(min(N_values), max(N_values), 1),
+                             np.arange(min(K_values), max(K_values), 1))
+
+# Interpolate the data
+avg_brute_force_grid = griddata((N_values, K_values), avg_brute_force_values, (N_grid, K_grid), method='cubic')
+avg_brute_force_AL_grid = griddata((N_values, K_values), avg_brute_force_AL_values, (N_grid, K_grid), method='cubic')
+
 # Creating 3D plots
 fig = plt.figure(figsize=(12, 6))
 
 # Plot for brute_force
 ax1 = fig.add_subplot(121, projection='3d')
-ax1.scatter(N_values, K_values, avg_brute_force_values, c='r', marker='o')
+if surface:
+    ax1.plot_surface(N_grid, K_grid, avg_brute_force_grid, edgecolor='none')
+else:
+    ax1.scatter(N_values, K_values, avg_brute_force_values)
 ax1.set_xlabel('N')
 ax1.set_xlim(4, 23)
 ax1.set_xticks(np.arange(4, 24, 2))
@@ -53,7 +67,10 @@ ax1.set_title('Avg brute_force vs N and K')
 
 # Plot for brute_force_AL
 ax2 = fig.add_subplot(122, projection='3d')
-ax2.scatter(N_values, K_values, avg_brute_force_AL_values, c='b', marker='^')
+if surface:
+    ax2.plot_surface(N_grid, K_grid, avg_brute_force_AL_grid, edgecolor='none')
+else:
+    ax2.scatter(N_values, K_values, avg_brute_force_AL_values)
 ax2.set_xlabel('N')
 ax2.set_xlim(4, 23)
 ax2.set_xticks(np.arange(4, 24, 2))
