@@ -1,0 +1,26 @@
+==8222== NVPROF is profiling process 8222, command: ./exe -mN 6 -MN 6 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1000 -r 0.1 -PCRq 0.3,2,1,2 -c -s -f
+==8222== Profiling application: ./exe -mN 6 -MN 6 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1000 -r 0.1 -PCRq 0.3,2,1,2 -c -s -f
+==8222== Profiling result:
+"Type","Time(%)","Time","Calls","Avg","Min","Max","Name"
+,%,ms,,us,us,us,
+"GPU activities",37.900753,21.540101,7545,2.854000,2.783000,3.584000,"reduce_argmin(float*, unsigned int*, float*, unsigned int*)"
+"GPU activities",31.737612,18.037409,6545,2.755000,2.688000,3.200000,"brute_force_AL(unsigned char, float*, unsigned int*)"
+"GPU activities",18.766382,10.665481,15090,0.706000,0.671000,1.632000,"[CUDA memcpy DtoH]"
+"GPU activities",7.876563,4.476480,1000,4.476000,4.352000,5.728000,"brute_force(unsigned char, unsigned char, bool, float*, unsigned int*)"
+"GPU activities",3.718690,2.113440,9545,0.221000,0.191000,0.257000,"[CUDA memcpy HtoD]"
+"API calls",40.958221,186.576148,5,37315.229000,3.689000,186551.864000,"cudaMalloc"
+"API calls",22.974085,104.653378,15090,6.935000,5.670000,467.009000,"cudaMemcpy"
+"API calls",15.551889,70.843204,15090,4.694000,1.363000,509.044000,"cudaDeviceSynchronize"
+"API calls",12.158331,55.384598,15090,3.670000,2.522000,460.975000,"cudaLaunchKernel"
+"API calls",7.732699,35.224605,9545,3.690000,2.956000,165.266000,"cudaMemcpyToSymbol"
+"API calls",0.464571,2.116249,15090,0.140000,0.110000,7.132000,"cudaGetLastError"
+"API calls",0.081161,0.369710,114,3.243000,0.417000,140.026000,"cuDeviceGetAttribute"
+"API calls",0.057160,0.260382,1,260.382000,260.382000,260.382000,"cudaGetDeviceProperties"
+"API calls",0.008712,0.039686,1,39.686000,39.686000,39.686000,"cuDeviceGetName"
+"API calls",0.004227,0.019255,1,19.255000,19.255000,19.255000,"cuDeviceGetPCIBusId"
+"API calls",0.003439,0.015667,1,15.667000,15.667000,15.667000,"cuDeviceTotalMem"
+"API calls",0.003358,0.015297,3,5.099000,2.853000,8.960000,"cudaFree"
+"API calls",0.001172,0.005339,3,1.779000,0.688000,3.579000,"cuDeviceGetCount"
+"API calls",0.000560,0.002552,2,1.276000,0.470000,2.082000,"cuDeviceGet"
+"API calls",0.000234,0.001065,1,1.065000,1.065000,1.065000,"cuModuleGetLoadingMode"
+"API calls",0.000180,0.000820,1,0.820000,0.820000,0.820000,"cuDeviceGetUuid"
