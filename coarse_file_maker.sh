@@ -12,14 +12,14 @@ CUDA_FILE=" param_visualization_n_dim_par2.cu"
 # Compile the file
 $COMPILER $COMPILER_FLAGS $CUDA_FILE
 
-K="6"
+K="7"
 
 
 
 PROFILER=nvprof
 
 # Cycle fromm N = 4 to N = 25
-for N in {5..22}; do
+for N in {7..22}; do
     PROFILER_FLAGS=" --log-file ./coarse_test/${N}_${K}.csv --csv "
     EXEC_FLAGS="-mN ${N} -MN ${N} -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1000 -r 0.1 -PCRq 0.3,2,1,2 -c -s -f"
     
