@@ -23,7 +23,7 @@
 /*--------------------------------------- DEFINES ------------------------------------------------- */
 
 #define CUDA_DEVICE_INDEX 0
-#define MAX_N_WHITOUT_COARSENING 29
+#define MAX_N_WITHOUT_COARSENING 29
 
 /*--------------------------------------- GLOBAL VARIABLES ---------------------------------------- */
 
@@ -377,9 +377,16 @@ int main(int argc, char** argv) {
         for(dim_Type m = MIN_M; m <= max_m; m++){
 
             test_results current_results;
-            if( 0 == test_at_dimension(n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
-                finalize(results);
+            if(n <= MAX_N_WITHOUT_COARSENING){
+                if( 0 == test_at_dimension_no_coarsening(n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
+                    finalize(results);
+                }
+            } else {
+                if( 0 == test_at_dimension_coarsening(n - MAX_N_WITHOUT_COARSENING + 1, n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
+                    finalize(results);
+                }
             }
+
             if(!only_final_report){
                 printf("\nN = %d\t M = %d\n", current_results.N, current_results.M);
                 printf("\tcorrect ratio = %.1f%%    unfinished ratio = %.1f%%    wrong ratio = %.1f%%    normalized mean error = %.1f%%\n", current_results.correct_ratio*100, current_results.unfinished_ratio*100, (1 - current_results.correct_ratio - current_results.unfinished_ratio)*100, current_results.normalized_error_mean*100);
