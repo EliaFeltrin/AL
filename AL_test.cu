@@ -555,7 +555,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force_coarsening<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(N, M,   , Q_DIAG, fx_gpu, xs_min_gpu);
+        brute_force_coarsening<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(N, M, COARSENING, Q_DIAG, fx_gpu, xs_min_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
