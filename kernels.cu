@@ -13,8 +13,6 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
-#define COARSENING 8
-
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
 __constant__ Q_Type Q_const[MAX_N_GPU * (MAX_N_GPU + 1) / 2];
