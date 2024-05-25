@@ -193,6 +193,9 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restric
 
   	// Position in the input array from which to start the reduction  
   	const unsigned int i = threadIdx.x;
+    fx_Type* output = input;
+    x_dec_Type* x_output = x_input;
+
 
   	// Offset the pointers to the correct block
   	input += blockDim.x * blockIdx.x;
@@ -218,9 +221,9 @@ __global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restric
 
   	// Write result for this block to global memory
   	if (i == 0) {
-        //printf("Block min: %f, x: %d\n", s_input[0], s_x[0]);
-        input[blockIdx.x] = s_input[0];
-        x_input[blockIdx.x] = s_x[0];
+        output[blockIdx.x] = s_input[0];
+        x_output[blockIdx.x] = s_x[0];
+        
   	}
 
 	//retrun di minimum e x corrispondente
