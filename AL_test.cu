@@ -488,14 +488,10 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
     double normalized_error_mean = 0;
 
 
-
-    //A_Type*     A_gpu; //input
-    //Q_Type*     Q_gpu; //input
-    //b_Type*     b_gpu; //input
+    // Creating two cuda streams 
     
-    //bool*       x_bin_buffer_gpu; //buffer
-    //b_Type*     Ax_b_buffer_gpu;  //buffer
 
+    // Allocate GPU memory
     fx_Type*    fx_gpu; // output / input
     x_dec_Type* xs_min_gpu; //output / input
     
@@ -504,13 +500,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
     fx_Type*    fx_max_gpu; //output
 
-    //CHECK(cudaMalloc(&A_gpu, A_len * sizeof(A_Type)));
-    //CHECK(cudaMalloc(&Q_gpu, N*(N+1)/2 * sizeof(Q_Type))); //NON È Q_LEN PERCHÈ Q' È SEMPRE TRIANGOLARE SUPERIORE E PER Q BASTA COSÌ O MENO    
-    //CHECK(cudaMalloc(&b_gpu, M * sizeof(b_Type)));
-
-    // CHECK(cudaMalloc(&x_bin_buffer_gpu, N * sizeof(bool) * pow(2,N))); //for each thread (thus each x) a buffer of N bools
-    // CHECK(cudaMalloc(&Ax_b_buffer_gpu, M * sizeof(b_Type) * pow(2,N))); //for each thread (thus each x) a buffer of M b_Type
-
+   
     
     CHECK(cudaMalloc(&fx_gpu, pow(2,N - COARSENING) * sizeof(fx_Type)));
     CHECK(cudaMalloc(&xs_min_gpu, pow(2,N - COARSENING) * sizeof(x_dec_Type)));
