@@ -877,49 +877,6 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     return 1;
 }
 
-void finalize(std::vector<test_results> results){
-    std::time_t t = std::time(nullptr);
-    char mbstr[100];
-    std::strftime(mbstr, sizeof(mbstr), "%Y%m%d_%H%M%S", std::localtime(&t));
-
-    std::stringstream filename;
-    filename << results_path << "/results_" << mbstr;
-    if(strlen(name_suffix) > 0){
-        filename << "__" << name_suffix;
-    }
-    filename << ".csv";
-
-    FILE* file = fopen(filename.str().c_str(), "w");
-    fprintf(file, "N,M,correct_ratio,unfinished_ratio,normalized_error_mean,mean_al_attempts_on_correct_solutions,mean_al_attempts_on_wrong_solutions,mean_al_attempts_on_unfinished_solutions,mean_lambda_on_correct_solutions,mean_lambda_on_unfinished_solutions,mean_lambda_on_wrong_solutions,mean_mu_on_correct_solutions,mean_mu_on_unfinished_solutions,mean_mu_on_wrong_solutions,lambda_min_on_correct_solutions,lambda_min_on_unfinished_solutions,lambda_min_on_wrong_solutions,lambda_max_on_correct_solutions,lambda_max_on_unfinished_solutions,lambda_max_on_wrong_solutions,duration\n");
-    for(int i = 0; i < results.size(); i++){
-        fprintf(file, "%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f%s", 
-            results[i].N,
-            results[i].M,
-            results[i].correct_ratio,
-            results[i].unfinished_ratio,
-            results[i].normalized_error_mean,
-            results[i].mean_al_attempts_on_correct_solutions,
-            results[i].mean_al_attempts_on_wrong_solutions,
-            results[i].mean_al_attempts_on_unfinished_solutions,
-            results[i].mean_lambda_on_correct_solutions,
-            results[i].mean_lambda_on_unfinished_solutions,
-            results[i].mean_lambda_on_wrong_solutions,
-            results[i].mean_mu_on_correct_solutions,
-            results[i].mean_mu_on_unfinished_solutions,
-            results[i].mean_mu_on_wrong_solutions,
-            results[i].lambda_min_on_correct_solutions,
-            results[i].lambda_min_on_unfinished_solutions,
-            results[i].lambda_min_on_wrong_solutions,
-            results[i].lambda_max_on_correct_solutions,
-            results[i].lambda_max_on_unfinished_solutions,
-            results[i].lambda_max_on_wrong_solutions,
-            results[i].duration,
-            i < results.size()-1 ? "\n" : ""
-            );
-        }
-
-    fclose(file);
-}
 
 int test_at_dimension_no_coarsening(    dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, mu_Type initial_mu, lambda_Type initial_lambda,  mu_Type rho, 
                                         void (*fill_Q)(Q_Type *Q, const dim_Type N, const Q_Type lowerbound_or_unused, const Q_Type upperbound_or_unused), Q_Type lb_Q, Q_Type ub_Q, 
