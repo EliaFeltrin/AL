@@ -282,7 +282,7 @@ __global__ void brute_force_AL(const dim_Type N, //input
 
 
 
-__global__ void reduce_argmin_coarsening(fx_Type* __restrict__ input, x_dec_Type* __restrict__ x_input, fx_Type* __restrict__ min, x_dec_Type* __restrict__ x_min){
+__global__ void reduce_argmin(fx_Type* __restrict__ input, x_dec_Type* __restrict__ x_input, fx_Type* __restrict__ min, x_dec_Type* __restrict__ x_min){
 
   	// Declare shared memory of N_THREADS elements
   	__shared__ fx_Type s_input[N_THREADS]; // Shared memory for the block
