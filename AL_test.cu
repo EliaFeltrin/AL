@@ -548,25 +548,35 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         CHECK(cudaMemcpyToSymbol(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice));
 
 
-        int n_threads = min(N_THREADS, (int)pow(2, N - COARSENING));
-        dim3 threads_per_block(n_threads);
-	    dim3 blocks_per_grid(pow(2, N - COARSENING) / n_threads);   
-        const int shared_mem_size = n_threads * M * sizeof(b_Type);
+        int n_threads_bf = min(N_THREADS_BF, (int)pow(2, N - COARSENING));
+        dim3 threads_per_block_bf(n_threads_bf);
+	    dim3 blocks_per_grid_bf(pow(2, N - COARSENING) / n_threads_bf);   
+        const int shared_mem_size = n_threads_bf * M * sizeof(b_Type);
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force_coarsening<<<blocks_per_grid, threads_per_block, shared_mem_size>>>(N, M, COARSENING, Q_DIAG, fx_gpu, xs_min_gpu);
+        brute_force_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, shared_mem_size>>>(N, M, COARSENING, Q_DIAG, fx_gpu, xs_min_gpu);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
-        reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, xs_min_gpu, fx_min_gpu, x_min_gpu);
-        CHECK_KERNELCALL();
-	    CHECK(cudaDeviceSynchronize());
+        int input_size = (int)pow(2, N - COARSENING);
+        while(input_size > 1){
+            int n_threads_am = min(N_THREADS_ARGMIN, input_size);
+            dim3 threads_per_block_am(n_threads_am);
+	        dim3 blocks_per_grid_am(input_size / n_threads_am);   
 
+            reduce_argmin<<<blocks_per_grid_am, threads_per_block_am>>>(fx_gpu, xs_min_gpu);
+            CHECK_KERNELCALL();
+	        CHECK(cudaDeviceSynchronize());
+
+            input_size >>= 10;
+        }
+
+        
 
         unsigned int true_min_x_dec;
-        CHECK(cudaMemcpy(&true_min_val, fx_min_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
-        CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpy(&true_min_val, fx_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpy(&true_min_x_dec, xs_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));
 
         for(int i = 0; i < N; i++){
             expected_min_x[i] = (true_min_x_dec >> i) & 1;
@@ -632,17 +642,31 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             //copy Q_plus_AT_A to GPU
             CHECK(cudaMemcpyToSymbol(Q_const, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
 
-            brute_force_AL_coarsening<<<blocks_per_grid, threads_per_block>>>(N, COARSENING, fx_gpu, xs_min_gpu);
+            brute_force_AL_coarsening<<<blocks_per_grid_bf, threads_per_block_bf>>>(N, COARSENING, fx_gpu, xs_min_gpu);
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 
-            reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, xs_min_gpu, fx_min_gpu, x_min_gpu);
+
+
+            int input_size = (int)pow(2, N - COARSENING);
+            while(input_size > 1){
+                int n_threads_am = min(N_THREADS_ARGMIN, input_size);
+                dim3 threads_per_block_am(n_threads_am);
+	            dim3 blocks_per_grid_am(input_size / n_threads_am);   
+
+                reduce_argmin<<<blocks_per_grid_am, threads_per_block_am>>>(fx_gpu, xs_min_gpu);
+                CHECK_KERNELCALL();
+	            CHECK(cudaDeviceSynchronize());
+
+                input_size >>= 10;
+            }
+        
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 
             unsigned int true_min_x_dec;
-            CHECK(cudaMemcpy(&al_min_val, fx_min_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
-            CHECK(cudaMemcpy(&true_min_x_dec, x_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));            
+            CHECK(cudaMemcpy(&al_min_val, fx_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
+            CHECK(cudaMemcpy(&true_min_x_dec, xs_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));            
 
             for(int i = 0; i < N; i++){
                 min_x[i] = (true_min_x_dec >> i) & 1;
