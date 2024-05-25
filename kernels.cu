@@ -49,8 +49,8 @@ __device__ __forceinline__ void atomicMin(fx_Type * addr_min, x_dec_Type* addr_a
 }
 
 
-__global__ void brute_force( //input
-                            const dim_Type N, const dim_Type M, const bool Q_DIAG, //consts
+__global__ void brute_force_coarsening( //input
+                            const dim_Type N, const dim_Type M, const unsigned int COARSENING, const bool Q_DIAG, //consts
                             fx_Type* __restrict__ fx_vals, x_dec_Type* __restrict__ x_min) { //output
     
     const x_dec_Type stride = pow(2, COARSENING);
@@ -139,7 +139,7 @@ __global__ void brute_force( //input
 
 
 
-__global__ void brute_force_AL(const dim_Type N, //input
+__global__ void brute_force_AL_coarsening(const dim_Type N, const unsigned int COARSENING,  //input
                                fx_Type* __restrict__ fx_vals, x_dec_Type* __restrict__ x_min) { //output
     
     const x_dec_Type stride = pow(2, COARSENING);
