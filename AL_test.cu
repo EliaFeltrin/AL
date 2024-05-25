@@ -559,7 +559,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
-        reduce_argmin<<<blocks_per_grid, threads_per_block>>>(fx_gpu, xs_min_gpu, fx_min_gpu, x_min_gpu);
+        reduce_argmin_coarsening<<<blocks_per_grid, threads_per_block>>>(fx_gpu, xs_min_gpu, fx_min_gpu, x_min_gpu);
         CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
