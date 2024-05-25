@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
 
             test_results current_results;
             if(n <= MAX_N_WITHOUT_COARSENING){
-                if( 0 == test_at_dimension_no_coarsening(n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
+                if( 0 == test_at_dimension_coarsening(0, n, m, MAXITER, N_AL_ATTEMPTS, initial_mu, initial_lambda, rho, fill_Q, PARAM_1_Q, PARAM_2_Q, fill_A, PARAM_1_A, fill_b, PARAM_1_b, al_end_condition, update_mu, &current_results, verbose, strong_verbose)){
                     finalize(results);
                 }
             } else {
