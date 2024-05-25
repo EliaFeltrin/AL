@@ -13,7 +13,7 @@
 #define MAX_N_GPU sizeof(x_dec_Type) * 8
 #define MAX_M_GPU 16
 
-#define COARSENING 1
+#define COARSENING 0
 
 
 __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
