@@ -12,7 +12,7 @@ CUDA_FILE=" param_visualization_n_dim_par2.cu"
 # Compile the file
 $COMPILER $COMPILER_FLAGS $CUDA_FILE
 
-K="3"
+K="4"
 
 
 
