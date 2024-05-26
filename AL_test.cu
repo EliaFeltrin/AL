@@ -548,26 +548,24 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
 
     // Creating two cuda streams 
-    
+    cudaStream_t stream_BF, stream_BF_AL;
+    CHECK(cudaStreamCreate(&stream_BF));
+    CHECK(cudaStreamCreate(&stream_BF_AL));
 
     // Allocate GPU memory
-    fx_Type*    fx_gpu; // output / input
-    x_dec_Type* xs_min_gpu; //output / input
-    
-    x_dec_Type* x_min_gpu; //output
-    fx_Type*    fx_min_gpu; //output
+    fx_Type*    fx_gpu_BF; // for brute_force
+    x_dec_Type* xs_min_gpu_BF; // for brute_force
 
-    fx_Type*    fx_max_gpu; //output
-
-   
+    fx_Type*    fx_gpu_AL; // for AL
+    x_dec_Type* xs_min_gpu_AL; // for AL
     
-    CHECK(cudaMalloc(&fx_gpu, pow(2,N - COARSENING) * sizeof(fx_Type)));
-    CHECK(cudaMalloc(&xs_min_gpu, pow(2,N - COARSENING) * sizeof(x_dec_Type)));
     
-    CHECK(cudaMalloc(&x_min_gpu, sizeof(x_dec_Type)));
-    CHECK(cudaMalloc(&fx_min_gpu, sizeof(fx_Type)));
+    CHECK(cudaMallocAsync(&fx_gpu_BF, pow(2,N - COARSENING) * sizeof(fx_Type), stream_BF));
+    CHECK(cudaMallocAsync(&xs_min_gpu_BF, pow(2,N - COARSENING) * sizeof(x_dec_Type), stream_BF));
 
-    CHECK(cudaMalloc(&fx_max_gpu, sizeof(fx_Type)););
+    CHECK(cudaMallocAsync(&fx_gpu_AL, pow(2,N - COARSENING) * sizeof(fx_Type), stream_BF_AL));
+    CHECK(cudaMallocAsync(&xs_min_gpu_AL, pow(2,N - COARSENING) * sizeof(x_dec_Type), stream_BF_AL));
+
 
 
     for(int iter = 0; iter < MAXITER; iter++) {
@@ -592,10 +590,10 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     
         
 
-        CHECK(cudaMemcpyToSymbol(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpyToSymbol(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
-        CHECK(cudaMemcpyToSymbol(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice));
-
+        CHECK(cudaMemcpyToSymbolAsync(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        CHECK(cudaMemcpyToSymbolAsync(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        CHECK(cudaMemcpyToSymbolAsync(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        
 
         int n_threads_bf = min(N_THREADS_BF, (int)pow(2, N - COARSENING));
         dim3 threads_per_block_bf(n_threads_bf);
@@ -604,7 +602,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         
         //ADD Q_DIAG e Q_ID
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
-        brute_force_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, shared_mem_size>>>(N, M, COARSENING, Q_DIAG, fx_gpu, xs_min_gpu);
+        brute_force_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, shared_mem_size, stream_BF>>>(N, M, COARSENING, Q_DIAG, fx_gpu_BF, xs_min_gpu_BF);
 	    CHECK_KERNELCALL();
 	    CHECK(cudaDeviceSynchronize());
 
@@ -614,7 +612,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             dim3 threads_per_block_am(n_threads_am);
 	        dim3 blocks_per_grid_am(input_size / n_threads_am);   
 
-            reduce_argmin<<<blocks_per_grid_am, threads_per_block_am>>>(fx_gpu, xs_min_gpu);
+            reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF>>>(fx_gpu_BF, xs_min_gpu_BF);
             CHECK_KERNELCALL();
 	        CHECK(cudaDeviceSynchronize());
 
@@ -624,8 +622,10 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         
 
         unsigned int true_min_x_dec;
-        CHECK(cudaMemcpy(&true_min_val, fx_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
-        CHECK(cudaMemcpy(&true_min_x_dec, xs_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));
+        CHECK(cudaMemcpyAsync(&true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
+        CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
+
+        CHECK(cudaStreamSynchronize(stream_BF));
 
         for(int i = 0; i < N; i++){
             expected_min_x[i] = (true_min_x_dec >> i) & 1;
@@ -639,19 +639,21 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             std::cout << "] with value " << true_min_val << std::endl << std::endl;
         }
 
-        true_max_val = compute_max(Q, N);                                          //TO DO: calcolare il vero massimo
-        /*//NB: im skipping the problem if there is no feasible solution. It would be interesting to check if AL realize it.
-        if(!find_x_min_brute_force(Q, N, A, M, b, expected_min_x, &true_max_val, &true_min_val, strong_verbose)){
-            iter--;
-            continue;
-        }*/
+        true_max_val = compute_max(Q, N);
+
 
         int attempt = 0;
         bool ok;
         bool al_condition;
         
-        Q_Type Q_plus_AT_A[N*(N+1)/2];
-        compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_plus_AT_A, M, N);
+        Q_Type Q_prime[N*(N+1)/2];
+        compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_prime, M, N);
+        Q_Type Q_ATA_diag[N];
+        //copy all the elements of Q_plus_AT_A to Q_prime  
+        for(int i = 0; i < N; i++){
+            Q_ATA_diag[i] = Q_prime[triang_index(i,i,N)];
+        }
+
         do{
 
             if(strong_verbose){
@@ -662,9 +664,8 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 printf("]\n");
             }
             
-        
 
-            
+
             //devo calcolare Q' = Q + A^T A + diag((lambda - mu b)^T A)
             //calcolo lambda - bu*b
             lambda_Type lambda_mu_b[M];
@@ -683,15 +684,15 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
             //calcolo Q'
             for(dim_Type i = 0; i < N; i++){
-                Q_plus_AT_A[triang_index(i,i,N)] += lambda_mu_b_A[i]; 
+                Q_prime[triang_index(i,i,N)] = Q_ATA_diag[i] + lambda_mu_b_A[i]; 
             }
 
             
 
             //copy Q_plus_AT_A to GPU
-            CHECK(cudaMemcpyToSymbol(Q_const, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
+            CHECK(cudaMemcpyToSymbolAsync(Q_prime_const, Q_prime, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF_AL));
 
-            brute_force_AL_coarsening<<<blocks_per_grid_bf, threads_per_block_bf>>>(N, COARSENING, fx_gpu, xs_min_gpu);
+            brute_force_AL_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, 0, stream_BF_AL>>>(N, COARSENING, fx_gpu_AL, xs_min_gpu_AL);
             CHECK_KERNELCALL();
             CHECK(cudaDeviceSynchronize());
 
@@ -703,7 +704,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 dim3 threads_per_block_am(n_threads_am);
 	            dim3 blocks_per_grid_am(input_size / n_threads_am);   
 
-                reduce_argmin<<<blocks_per_grid_am, threads_per_block_am>>>(fx_gpu, xs_min_gpu);
+                reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF_AL>>>(fx_gpu_AL, xs_min_gpu_AL);
                 CHECK_KERNELCALL();
 	            CHECK(cudaDeviceSynchronize());
 
@@ -715,8 +716,10 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             CHECK(cudaDeviceSynchronize());
 
             unsigned int true_min_x_dec;
-            CHECK(cudaMemcpy(&al_min_val, fx_gpu, sizeof(fx_Type), cudaMemcpyDeviceToHost));
-            CHECK(cudaMemcpy(&true_min_x_dec, xs_min_gpu, sizeof(x_dec_Type), cudaMemcpyDeviceToHost));            
+            CHECK(cudaMemcpyAsync(&al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
+            CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));            
+
+            CHECK(cudaStreamSynchronize(stream_BF_AL));
 
             for(int i = 0; i < N; i++){
                 min_x[i] = (true_min_x_dec >> i) & 1;
@@ -933,10 +936,11 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     // CHECK(cudaFree(x_bin_buffer_gpu));
     // CHECK(cudaFree(Ax_b_buffer_gpu));
 
-    CHECK(cudaFree(fx_gpu));
-    
-    CHECK(cudaFree(x_min_gpu));
-    CHECK(cudaFree(fx_min_gpu));
+    CHECK(cudaFree(fx_gpu_BF));
+    CHECK(cudaFree(xs_min_gpu_BF));
+
+    CHECK(cudaFree(fx_gpu_AL));
+    CHECK(cudaFree(xs_min_gpu_AL));
 
     // Deallocate
     delete[] Q;

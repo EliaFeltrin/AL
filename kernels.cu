@@ -19,7 +19,7 @@ __constant__ A_Type A_const[MAX_M_GPU * MAX_N_GPU];
 __constant__ Q_Type Q_const[MAX_N_GPU * (MAX_N_GPU + 1) / 2];
 __constant__ b_Type b_const[MAX_M_GPU];
 
-__device__ volatile int sem = 0;
+__constant__ Q_Type Q_prime_const[MAX_N_GPU * (MAX_N_GPU + 1) / 2];
 
 
 __global__ void brute_force_coarsening( //input
@@ -133,7 +133,7 @@ __global__ void brute_force_AL_coarsening(const dim_Type N, const unsigned int C
             if((x >> i) & 0b1){
                 for(dim_Type j = i; j < N; j++){
                     if((x >> j) & 0b1)
-                        fx +=  Q_const[Q_idx];
+                        fx +=  Q_prime_const[Q_idx];
                     Q_idx++;
                 }
             }else{
