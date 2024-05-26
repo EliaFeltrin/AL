@@ -65,7 +65,6 @@ __global__ void brute_force_coarsening( //input
     extern __shared__ char shared_mem[];
     b_Type* Ax_b_shared = (b_Type*) shared_mem;
 
-    
     for(x_dec_Type x = x_start; x < x_start + stride; x++){
 
         //fill Ax_b_shared with zeros
@@ -103,6 +102,7 @@ __global__ void brute_force_coarsening( //input
         if(is_feasible){
             fx = 0;
             if(Q_DIAG){ //Q is encoded as an array with only the diagonal elements
+                #pragma unroll
                 for(dim_Type i = 0; i < N; i++){
                     if((x >> i) & 0b1)
                         fx += Q_const[i];
@@ -111,6 +111,7 @@ __global__ void brute_force_coarsening( //input
 
                 int Q_idx = 0;
                 //FACCIAMO  x^T * Qx considerando la codifica particolare di Q
+                #pragma unroll
                 for(dim_Type i = 0; i < N; i++){
 
                     if((x >> i) & 0b1){
@@ -155,6 +156,7 @@ __global__ void brute_force_AL_coarsening(const dim_Type N, const unsigned int C
         int Q_idx = 0;
 
         //FACCIAMO  x^T * Q' * x considerando la codifica particolare di Q
+        #pragma unroll
         for(dim_Type i = 0; i < N; i++){
             if((x >> i) & 0b1){
                 for(dim_Type j = i; j < N; j++){
