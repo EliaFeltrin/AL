@@ -277,7 +277,17 @@ int main(int argc, char** argv) {
     }
 
     if( MAX_M * MAX_N * sizeof(A_Type) + MAX_M * sizeof(b_Type) + (Q_DIAG ? MAX_N : MAX_N * (MAX_N + 1) / 2) * sizeof(Q_Type) > prop.totalConstMem){
-        printf("ERROR: shared memory size exceeded. Please reduce either N or M.\n");
+        printf("ERROR: constatnt memory size exceeded. Please reduce either N or M.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if( MAX_M > MAX_M_GPU ){
+        printf("ERROR: MAX_M must be <= %d\n", MAX_M_GPU);
+        exit(EXIT_FAILURE);
+    }
+
+    if( MAX_N > MAX_N_GPU ){
+        printf("ERROR: MAX_N must be <= %d with this x_dec_type. You can change it in types.h\n");
         exit(EXIT_FAILURE);
     }
 

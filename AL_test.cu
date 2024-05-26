@@ -139,13 +139,13 @@ void compute_Q_plus_AT_A_upper_triangular_lin(const Q_Type* __restrict__ Q, A_Ty
 void fill_Q_id_lin(Q_Type*  Q, const dim_Type N, const Q_Type not_used_1, const Q_Type not_used_2);
 void fill_Q_diag_lin(Q_Type*  Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbund);
 void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerbound, const Q_Type upperbound);
-void fill_Q_manual_lin(Q_Type*  Q, const dim_Type N, const Q_Type unused_1, const Q_Type unused_2) {printf("not yet implemented"); exit(0);}
+void fill_Q_manual_lin(Q_Type*  Q, const dim_Type N, const Q_Type unused_1, const Q_Type unused_2);
 
 void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float one_probability, const b_Type b);
-void fill_A_manual_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float unused_1, const b_Type unused_2) {printf("not yet implemented"); exit(0);}
+void fill_A_manual_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float unused_1, const b_Type unused_2);
 
 void fill_b_vector_lin(b_Type* b, const dim_Type M, const b_Type b_val);
-void fill_b_manual_lin(b_Type* b, const dim_Type M, const b_Type unused) {printf("not yet implemented"); exit(0);}
+void fill_b_manual_lin(b_Type* b, const dim_Type M, const b_Type unused);
 
 void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_lambda);
 void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_lambda, lambda_Type noise_amplitude);
@@ -238,6 +238,35 @@ void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerb
     }
 }
 
+void fill_Q_manual_lin(Q_Type*  Q, const dim_Type N, const Q_Type unused_1, const Q_Type unused_2){
+    Q_Type useless_val;
+    unsigned int q_counter = 0;
+    if(!Q_DIAG){
+        for(dim_Type i = 0; i < N; i++){
+            for(dim_Type j = 0; j < N; j++){
+                if(j >= i){
+                    scanf("%f", &Q[q_counter++]);
+                } else {
+                    scanf("%f", &useless_val);
+                }
+            }
+        }
+    } else {
+        for(dim_Type i = 0; i < N; i++){
+            for(dim_Type j = 0; j < N; j++){
+                if(j == i){
+                    scanf("%f", &Q[i]);
+                } else {
+                    scanf("%f", &useless_val);
+                }
+            }
+        }
+    }
+
+    print_Q(Q, N);
+
+}
+
 void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float one_probability, const b_Type b_){
     b_Type b = -b_;
 
@@ -286,11 +315,30 @@ void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const
 
 }
 
+void fill_A_manual_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float unused_1, const b_Type unused_2){
+    dim_Type A_counter = 0;
+    for(dim_Type i = 0; i < M; i++){
+        for(dim_Type j = 0; j < N; j++){
+            scanf("%d", &A[A_counter++]);
+        }
+    }
+
+    print_A(A, M, N);
+}
 
 void fill_b_vector_lin(b_Type* b, const dim_Type M, const b_Type b_val){
     for(dim_Type i = 0; i < M; i++){
         b[i] = b_val;
     }
+}
+
+void fill_b_manual_lin(b_Type* b, const dim_Type M, const b_Type unused){
+    for(dim_Type i = 0; i < M; i++){
+        scanf("%d", &b[i]);
+    }
+
+    print_b(b, M);
+
 }
 
 void fill_lambda_lin(lambda_Type* lambda, const dim_Type M, lambda_Type initial_lambda){

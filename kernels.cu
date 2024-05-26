@@ -21,34 +21,6 @@ __constant__ b_Type b_const[MAX_M_GPU];
 
 __device__ volatile int sem = 0;
 
-__device__ __forceinline__  void acquire_semaphore(volatile int *lock){
-    while (atomicCAS((int *)lock, 0, 1) != 0);
-}
-
-__device__ __forceinline__ void release_semaphore(volatile int *lock){
-    *lock = 0;
-    __threadfence();
-}
-
-__device__ __forceinline__ void atomicMin(fx_Type * addr_min, x_dec_Type* addr_argmin, fx_Type value_min, x_dec_Type value_argmin) {
-
-    acquire_semaphore(&sem);
-    __syncthreads();
-    //begin critical section
-    
-    if(*addr_min > value_min){
-        *addr_min = value_min;
-        *addr_argmin = value_argmin;
-    }
-    //end critical section
-    
-    __threadfence(); // not strictly necessary for the lock, but to make any global updates in the critical section visible to other threads in the grid
-    __syncthreads();
-    release_semaphore(&sem);
-    __syncthreads();   
-
-}
-
 
 __global__ void brute_force_coarsening( //input
                             const dim_Type N, const dim_Type M, const unsigned int COARSENING, const bool Q_DIAG, //consts
