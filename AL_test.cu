@@ -319,13 +319,12 @@ void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const
 }
 
 void fill_A_manual_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float unused_1, const b_Type unused_2){
-    dim_Type A_counter = 0;
 
     printf("ENTER A MATRIX\n");
 
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
-            scanf("%d", &A[A_counter++]);
+            scanf("%d", &A[j*M + i]);
         }
     }
 
