@@ -234,6 +234,7 @@ int main(int argc, char** argv) {
                 computer_test = true;
                 break;
             case 'h':
+                fill_Q = fill_Q_manual_lin;
                 fill_A = fill_A_manual_lin;
                 fill_b = fill_b_manual_lin;
                 break;
