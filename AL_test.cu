@@ -578,30 +578,17 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     for(int iter = 0; iter < MAXITER; iter++) {
         correct = unfinished = wrong = 0;
 
+        //fill and transfer Q
         fill_Q(Q, N, lb_Q, ub_Q);
-        fill_A(A, M, N, one_prob, b_val);
-        fill_b(b, M, b_val);
-
-
-        if(verbose || strong_verbose){
-            printf("-------------------------------------------------------------\n");
-            print_Q(Q, N);
-            print_A(A, M, N);
-            print_b(b, M);
-        }
-
-
-        mu = initial_mu;
-        fill_lambda_lin(lambda, M, initial_lambda, 0);
-
-    
-        
-
         CHECK(cudaMemcpyToSymbolAsync(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        //fill and transfer A
+        fill_A(A, M, N, one_prob, b_val);
         CHECK(cudaMemcpyToSymbolAsync(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        //fill and transfer b
+        fill_b(b, M, b_val);
         CHECK(cudaMemcpyToSymbolAsync(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice, stream_BF));
-        
 
+        //LANCIO BRUTE FORCE
         int n_threads_bf = min(N_THREADS_BF, (int)pow(2, N - COARSENING));
         dim3 threads_per_block_bf(n_threads_bf);
 	    dim3 blocks_per_grid_bf(pow(2, N - COARSENING) / n_threads_bf);   
@@ -611,7 +598,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
         brute_force_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, shared_mem_size, stream_BF>>>(N, M, COARSENING, Q_DIAG, fx_gpu_BF, xs_min_gpu_BF);
 	    CHECK_KERNELCALL();
-	    CHECK(cudaDeviceSynchronize());
+	    //CHECK(cudaDeviceSynchronize()); ///MAYBE TO REMOVE
 
         int input_size = (int)pow(2, N - COARSENING);
         while(input_size > 1){
@@ -621,57 +608,63 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
             reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF>>>(fx_gpu_BF, xs_min_gpu_BF);
             CHECK_KERNELCALL();
-	        CHECK(cudaDeviceSynchronize());
+	        //CHECK(cudaDeviceSynchronize()); ///MAYBE TO REMOVE
 
             input_size >>= (int)log2(N_THREADS_ARGMIN);
         }
 
-        
-
+        //COPY BACK RESULTS FROM BRUTE FORCE
         unsigned int true_min_x_dec;
         CHECK(cudaMemcpyAsync(&true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
         CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
 
-        CHECK(cudaStreamSynchronize(stream_BF));
 
-        for(int i = 0; i < N; i++){
-            expected_min_x[i] = (true_min_x_dec >> i) & 1;
+        
+
+        //PRINTS
+        if(verbose || strong_verbose){
+            printf("-------------------------------------------------------------\n");
+            print_Q(Q, N);
+            print_A(A, M, N);
+            print_b(b, M);
         }
 
-        if(strong_verbose){
-            printf("Expected minimum found in x = [ ");
-            for(dim_Type i = 0; i < N; i++){
-                std::cout << expected_min_x[i] << " ";
-            }
-            std::cout << "] with value " << true_min_val << std::endl << std::endl;
-        }
+        //INITIALIZE AL VARIABLES
+        mu = initial_mu;
+        fill_lambda_lin(lambda, M, initial_lambda, 0);
 
+        //COMPUTE TRUE MAX
         true_max_val = compute_max(Q, N);
 
-
-        int attempt = 0;
-        bool ok;
-        bool al_condition;
         
+        //COPMPUTE Q + A^T A
         Q_Type Q_prime[N*(N+1)/2];
         compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_prime, M, N);
+
+        //COPY THE DIAGONAL OF Q + A^T A
         Q_Type Q_ATA_diag[N];
         //copy all the elements of Q_plus_AT_A to Q_prime  
         for(int i = 0; i < N; i++){
             Q_ATA_diag[i] = Q_prime[triang_index(i,i,N)];
         }
+        
+
+        
+
+        
+
+        
+
+
+
+        int attempt = 0;
+        bool ok;
+        bool al_condition;
 
         do{
-
-            if(strong_verbose){
-                printf("AL attempt %d\tmu = %.5f\tlambda^T = [ ", attempt, mu);
-                for(dim_Type idx = 0; idx < M; idx++){
-                    printf("%.1f ", lambda[idx]);
-                }
-                printf("]\n");
-            }
             
 
+            //CALCOLO DI Q'
 
             //devo calcolare Q' = Q + A^T A + diag((lambda - mu b)^T A)
             //calcolo lambda - bu*b
@@ -694,16 +687,15 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 Q_prime[triang_index(i,i,N)] = Q_ATA_diag[i] + lambda_mu_b_A[i]; 
             }
 
-            
+
 
             //copy Q_plus_AT_A to GPU
             CHECK(cudaMemcpyToSymbolAsync(Q_prime_const, Q_prime, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF_AL));
 
+            //LANCIO AL
             brute_force_AL_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, 0, stream_BF_AL>>>(N, COARSENING, fx_gpu_AL, xs_min_gpu_AL);
             CHECK_KERNELCALL();
-            CHECK(cudaDeviceSynchronize());
-
-
+            //CHECK(cudaDeviceSynchronize());
 
             int input_size = (int)pow(2, N - COARSENING);
             while(input_size > 1){
@@ -713,23 +705,40 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
                 reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF_AL>>>(fx_gpu_AL, xs_min_gpu_AL);
                 CHECK_KERNELCALL();
-	            CHECK(cudaDeviceSynchronize());
+	            //CHECK(cudaDeviceSynchronize());
 
 
                 input_size >>= (int)log2(N_THREADS_ARGMIN);
             }
         
-            CHECK_KERNELCALL();
-            CHECK(cudaDeviceSynchronize());
 
-            unsigned int true_min_x_dec;
+
+            //COPY BACK RESULTS FROM AL
+            unsigned int AL_min_x_dec;
             CHECK(cudaMemcpyAsync(&al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
-            CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));            
+            CHECK(cudaMemcpyAsync(&AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
 
-            CHECK(cudaStreamSynchronize(stream_BF_AL));
 
+
+
+            //STAMPA LAMBDA E MU
+            if(strong_verbose){
+                printf("AL attempt %d\tmu = %.5f\tlambda^T = [ ", attempt, mu);
+                for(dim_Type idx = 0; idx < M; idx++){
+                    printf("%.1f ", lambda[idx]);
+                }
+                printf("]\n");
+            }
+            
+
+
+            
+            CHECK(cudaStreamSynchronize(stream_BF_AL));///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+            //TRASFORMO x in array binario
             for(int i = 0; i < N; i++){
-                min_x[i] = (true_min_x_dec >> i) & 1;
+                min_x[i] = (AL_min_x_dec >> i) & 1;
             }
 
 
@@ -755,6 +764,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 printf("]\tmin_val = %.1f\n", al_min_val);
             }
 
+            //UPDATE DI LAMBDA E MU
             for(dim_Type j = 0; j < M; j++){
                 old_lambda[j] = lambda[j];
             }
@@ -779,9 +789,23 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
            
         } while (!ok && al_condition);
 
+        CHECK(cudaStreamSynchronize(stream_BF));  ///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-        Q_Type current_xQx = compute_xQx(Q, min_x, N);
-        correct = al_condition && ok && current_xQx == true_min_val;
+        //PRINT DEL MINIMO TROVATO <<<<<<<<<<<<<<<<<<<<<< VA FATTO DOPO CHE BRUTE FORCE HA FINITO
+        if(strong_verbose){
+            for(int i = 0; i < N; i++){
+                expected_min_x[i] = (true_min_x_dec >> i) & 1;
+            }
+            printf("Expected minimum found in x = [ ");
+            for(dim_Type i = 0; i < N; i++){
+                std::cout << expected_min_x[i] << " ";
+            }
+            std::cout << "] with value " << true_min_val << std::endl << std::endl;
+        }
+
+
+        Q_Type current_xQ_prime_x = compute_xQx(Q, min_x, N);
+        correct = al_condition && ok && current_xQ_prime_x == true_min_val;
         unfinished = !al_condition;
         if(correct && unfinished){
             printf("ERROR: the same problem is both correct and unfinished\n");
@@ -803,10 +827,10 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         else if(wrong){                     //AL has chosen the wrong minimum
             if(strong_verbose)
                 printf("PROBLEM SOLVED WRONGLY\n");  
-            normalized_error_mean += true_max_val-true_min_val != 0 ? (current_xQx - true_min_val) / (true_max_val-true_min_val) : 1;
+            normalized_error_mean += true_max_val-true_min_val != 0 ? (current_xQ_prime_x - true_min_val) / (true_max_val-true_min_val) : 1;
             //It DOESN'T make sesnse that the error is negative. true_min_val is the minimum feasible value of the function, if AL exits the loop beleiving that a lower minimum (that could exists) fulfils the constraints, there is a problem while checking c(x)
             if(normalized_error_mean < 0){
-                printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, current_xQx);
+                printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, current_xQ_prime_x);
                 print_Q(Q, N);
                 print_A(A, M, N);
                 print_b(b, M);
