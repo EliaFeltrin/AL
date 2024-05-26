@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
                             delimiter_pos_1 = arg.find(",", delimiter_pos_2 + 1);
                             PARAM_1_Q = std::stof(arg.substr(delimiter_pos_2 + 1, delimiter_pos_1));
                             PARAM_2_Q = std::stof(arg.substr(delimiter_pos_1 + 1));
-                            fill_Q = fill_Q_upper_trianular_lin;
+                            fill_Q = fill_Q_manual_lin;
                             fill_A = fill_A_neg_binary_lin;
                             fill_b = fill_b_vector_lin;
                             Q_fill_policy = upper_triangular;
