@@ -26,9 +26,7 @@ PROFILER_METRICS="--metrics all "
 #PCRl prob,b,lower,upper con Q diagonale
 #PCRq prob,b,lower,upper con Q triang sup
 
-
-EXEC_FLAGS="-mN 13 -MN 17 -mM 10 -MM 10 -ml=0 -mu 0.1 -l -a 1000 -i 100 -r 0.1 -PCRq 0.1,2,1,2 -c "
-
+EXEC_FLAGS="-mN 20 -MN 20 -mM 3 -MM 3 -ml=0 -mu 0.1 -l -a 1000 -i 1000 -r 0.1 -PCRq 0.3,2,1,2 -c -s"
 
 # Requested command
 COMMAND=$1
@@ -88,9 +86,8 @@ elif [ $COMMAND == "debug" ]; then
     exit 0
 elif [ $COMMAND == "run" ]; then
     # Run only
-    clear
     echo "Running CUDA program $CUDA_FILE"
-    ./exe $EXEC_FLAGS
+    ./exe $EXEC_FLAGS -f
     exit 0
 else
     echo "Usage: $0 <all|compile|profile> <CUDA_SOURCE_FILE>"
