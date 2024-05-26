@@ -287,7 +287,7 @@ int main(int argc, char** argv) {
     }
 
     if( MAX_N > MAX_N_GPU ){
-        printf("ERROR: MAX_N must be <= %d with this x_dec_type. You can change it in types.h\n", MAX_N_GPU);
+        printf("ERROR: MAX_N must be <= %ld with this x_dec_type. You can change it in types.h\n", MAX_N_GPU);
         exit(EXIT_FAILURE);
     }
 

@@ -240,6 +240,9 @@ void fill_Q_upper_trianular_lin(Q_Type *Q, const dim_Type N, const Q_Type lowerb
 
 void fill_Q_manual_lin(Q_Type*  Q, const dim_Type N, const Q_Type unused_1, const Q_Type unused_2){
     Q_Type useless_val;
+
+    printf("ENTER Q MATRIX\n");
+
     unsigned int q_counter = 0;
     if(!Q_DIAG){
         for(dim_Type i = 0; i < N; i++){
@@ -317,6 +320,9 @@ void fill_A_neg_binary_lin(A_Type*  A, const dim_Type M, const dim_Type N, const
 
 void fill_A_manual_lin(A_Type*  A, const dim_Type M, const dim_Type N, const float unused_1, const b_Type unused_2){
     dim_Type A_counter = 0;
+
+    printf("ENTER A MATRIX\n");
+
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
             scanf("%d", &A[A_counter++]);
@@ -333,6 +339,8 @@ void fill_b_vector_lin(b_Type* b, const dim_Type M, const b_Type b_val){
 }
 
 void fill_b_manual_lin(b_Type* b, const dim_Type M, const b_Type unused){
+    printf("ENTER B VECTOR\n");
+    
     for(dim_Type i = 0; i < M; i++){
         scanf("%d", &b[i]);
     }
