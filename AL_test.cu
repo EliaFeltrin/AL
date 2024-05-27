@@ -516,21 +516,34 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     const unsigned int Q_len = Q_DIAG ? N : N*(N+1)/2;
     const unsigned int A_len = M * N;
 
-    Q_Type* Q = new Q_Type[Q_len];
-    A_Type* A = new A_Type[M*N];
-    b_Type* b = new b_Type[M];
+    Q_Type* Q;
+    CHECK(cudaMallocHost(&Q, Q_len * sizeof(Q_Type), cudaHostAllocDefault));
+    A_Type* A;
+    CHECK(cudaMallocHost(&A, A_len * sizeof(A_Type), cudaHostAllocDefault));
+    b_Type* b;
+    CHECK(cudaMallocHost(&b, M * sizeof(b_Type), cudaHostAllocDefault));
+    Q_Type* Q_prime;
+    CHECK(cudaMallocHost(&Q_prime, N*(N+1)/2 * sizeof(Q_Type), cudaHostAllocDefault));
+    
+    
     lambda_Type* lambda = new lambda_Type[M];
     lambda_Type* old_lambda = new lambda_Type[M];
     bool* expected_min_x = new bool[N];
     bool* min_x = new bool[N];
     b_Type* c = new b_Type[M];
 
+    
 
     fx_Type true_max_val;
     
     fx_Type *true_min_val, *al_min_val;
     CHECK(cudaHostAlloc(&true_min_val, sizeof(fx_Type), cudaHostAllocDefault));
     CHECK(cudaHostAlloc(&al_min_val, sizeof(fx_Type), cudaHostAllocDefault));
+    x_dec_Type* true_min_x_dec, *AL_min_x_dec;
+    CHECK(cudaHostAlloc(&true_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
+    CHECK(cudaHostAlloc(&AL_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
+
+
 
     mu_Type mu;
     mu_Type old_mu;
@@ -609,8 +622,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         }
 
         //COPY BACK RESULTS FROM BRUTE FORCE
-        x_dec_Type* true_min_x_dec;
-        CHECK(cudaHostAlloc(&true_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
+
         CHECK(cudaMemcpyAsync(true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
         CHECK(cudaMemcpyAsync(true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
 
@@ -633,7 +645,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
         
         //COPMPUTE Q + A^T A
-        Q_Type Q_prime[N*(N+1)/2];
+        
         compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_prime, M, N);
 
         //COPY THE DIAGONAL OF Q + A^T A
@@ -702,8 +714,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
 
             //COPY BACK RESULTS FROM AL
-            x_dec_Type *AL_min_x_dec;
-            CHECK(cudaHostAlloc(&AL_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
+            
             CHECK(cudaMemcpyAsync(al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
             CHECK(cudaMemcpyAsync(AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
             
@@ -904,7 +915,6 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                     lambda_max_on_wrong_solutions = lambda[j];
             }
         }
-        
 
     }
 
@@ -967,9 +977,16 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     CHECK(cudaStreamDestroy(stream_BF_AL));
 
     // Deallocate
-    delete[] Q;
-    delete[] A;
-    delete[] b;
+    CHECK(cudaFreeHost(Q));
+    CHECK(cudaFreeHost(A));
+    CHECK(cudaFreeHost(b));
+    CHECK(cudaFreeHost(Q_prime));
+    CHECK(cudaFreeHost(true_min_val));
+    CHECK(cudaFreeHost(al_min_val));
+    CHECK(cudaFreeHost(true_min_x_dec));
+    CHECK(cudaFreeHost(AL_min_x_dec));
+
+ 
     delete[] lambda;
     delete[] old_lambda;
     delete[] expected_min_x;
