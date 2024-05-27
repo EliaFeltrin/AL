@@ -43,7 +43,7 @@ constexpr T max_val(){
 
 /*--------------------------------------- MACROS -------------------------------------------------- */
 
-#define CHECK(call)                                                                         \
+#define call)                                                                         \
 	{                                                                                       \
 		const cudaError_t err = call;                                                       \
 		if (err != cudaSuccess) {                                                           \
@@ -549,8 +549,8 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
     // Creating two cuda streams 
     cudaStream_t stream_BF, stream_BF_AL;
-    CHECK(cudaStreamCreateWithPriority(&stream_BF, cudaStreamNonBlocking, 1));
-    CHECK(cudaStreamCreateWithPriority(&stream_BF_AL, cudaStreamNonBlocking, 0));
+    cudaStreamCreateWithPriority(&stream_BF, cudaStreamNonBlocking, 1);
+    cudaStreamCreateWithPriority(&stream_BF_AL, cudaStreamNonBlocking, 0);
 
     // Allocate GPU memory
     fx_Type*    fx_gpu_BF; // for brute_force
@@ -560,11 +560,11 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     x_dec_Type* xs_min_gpu_AL; // for AL
     
     
-    CHECK(cudaMallocAsync(&fx_gpu_BF, pow(2,N - COARSENING) * sizeof(fx_Type), stream_BF));
-    CHECK(cudaMallocAsync(&xs_min_gpu_BF, pow(2,N - COARSENING) * sizeof(x_dec_Type), stream_BF));
+    cudaMallocAsync(&fx_gpu_BF, pow(2,N - COARSENING) * sizeof(fx_Type), stream_BF);
+    cudaMallocAsync(&xs_min_gpu_BF, pow(2,N - COARSENING) * sizeof(x_dec_Type), stream_BF);
 
-    CHECK(cudaMallocAsync(&fx_gpu_AL, pow(2,N - COARSENING) * sizeof(fx_Type), stream_BF_AL));
-    CHECK(cudaMallocAsync(&xs_min_gpu_AL, pow(2,N - COARSENING) * sizeof(x_dec_Type), stream_BF_AL));
+    cudaMallocAsync(&fx_gpu_AL, pow(2,N - COARSENING) * sizeof(fx_Type), stream_BF_AL);
+    cudaMallocAsync(&xs_min_gpu_AL, pow(2,N - COARSENING) * sizeof(x_dec_Type), stream_BF_AL);
 
 
 
@@ -573,13 +573,13 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
         //fill and transfer Q
         fill_Q(Q, N, lb_Q, ub_Q);
-        CHECK(cudaMemcpyToSymbolAsync(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        cudaMemcpyToSymbolAsync(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF);
         //fill and transfer A
         fill_A(A, M, N, one_prob, b_val);
-        CHECK(cudaMemcpyToSymbolAsync(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        cudaMemcpyToSymbolAsync(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice, stream_BF);
         //fill and transfer b
         fill_b(b, M, b_val);
-        CHECK(cudaMemcpyToSymbolAsync(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        cudaMemcpyToSymbolAsync(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice, stream_BF);
 
         //LANCIO BRUTE FORCE
         int n_threads_bf = min(N_THREADS_BF, (int)pow(2, N - COARSENING));
@@ -591,7 +591,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         //brute_force<<<blocks_per_grid, threads_per_block>>>(Q_gpu, A_gpu, b_gpu, N, M, Q_DIAG, x_bin_buffer_gpu, Ax_b_buffer_gpu, feasible_gpu, fx_gpu);
         brute_force_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, shared_mem_size, stream_BF>>>(N, M, COARSENING, Q_DIAG, fx_gpu_BF, xs_min_gpu_BF);
 	    CHECK_KERNELCALL();
-	    //CHECK(cudaDeviceSynchronize()); ///MAYBE TO REMOVE
+	    //cudaDeviceSynchronize()); ///MAYBE TO REMOVE
         int input_size = (int)pow(2, N - COARSENING);
         while(input_size > 1){
             int n_threads_am = min(N_THREADS_ARGMIN, input_size);
@@ -600,16 +600,16 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
             reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF>>>(fx_gpu_BF, xs_min_gpu_BF);
             CHECK_KERNELCALL();
-	        //CHECK(cudaDeviceSynchronize()); ///MAYBE TO REMOVE
+	        //cudaDeviceSynchronize()); ///MAYBE TO REMOVE
             input_size >>= (int)log2(N_THREADS_ARGMIN);
         }
 
         //COPY BACK RESULTS FROM BRUTE FORCE
         unsigned int true_min_x_dec;
         printf("2\n\n");
-        CHECK(cudaMemcpyAsync(&true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
+        cudaMemcpyAsync(&true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF);
         printf("3\n\n");
-        CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
+        cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF);
         printf("4\n\n");
 
         //printf(cudaStreamQuery(stream_BF) == cudaSuccess ? "stream_BF is ready\n" : "stream_BF is not ready\n");
@@ -678,12 +678,12 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
 
             //copy Q_plus_AT_A to GPU
-            CHECK(cudaMemcpyToSymbolAsync(Q_prime_const, Q_prime, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF_AL));
+            cudaMemcpyToSymbolAsync(Q_prime_const, Q_prime, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF_AL);
 
             //LANCIO AL
             brute_force_AL_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, 0, stream_BF_AL>>>(N, COARSENING, fx_gpu_AL, xs_min_gpu_AL);
             CHECK_KERNELCALL();
-            //CHECK(cudaDeviceSynchronize());
+            //cudaDeviceSynchronize());
 
             int input_size = (int)pow(2, N - COARSENING);
             while(input_size > 1){
@@ -693,7 +693,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
                 reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF_AL>>>(fx_gpu_AL, xs_min_gpu_AL);
                 CHECK_KERNELCALL();
-	            //CHECK(cudaDeviceSynchronize());
+	            //cudaDeviceSynchronize());
 
 
                 input_size >>= (int)log2(N_THREADS_ARGMIN);
@@ -703,8 +703,8 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
             //COPY BACK RESULTS FROM AL
             unsigned int AL_min_x_dec;
-            CHECK(cudaMemcpyAsync(&al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
-            CHECK(cudaMemcpyAsync(&AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
+            cudaMemcpyAsync(&al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL);
+            cudaMemcpyAsync(&AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL);
 
 
 
@@ -721,7 +721,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
 
             
-            CHECK(cudaStreamSynchronize(stream_BF_AL));///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            cudaStreamSynchronize(stream_BF_AL);///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
             //TRASFORMO x in array binario
@@ -777,7 +777,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
         } while (!ok && al_condition);
 
-        CHECK(cudaStreamSynchronize(stream_BF));  ///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        cudaStreamSynchronize(stream_BF);  ///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         //PRINT DEL MINIMO TROVATO <<<<<<<<<<<<<<<<<<<<<< VA FATTO DOPO CHE BRUTE FORCE HA FINITO
         if(strong_verbose){
@@ -948,21 +948,21 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     results->duration = elapsed.count();
 
     //Free GPU memory
-    //CHECK(cudaFree(A_gpu));
-    //CHECK(cudaFree(Q_gpu));
-    //CHECK(cudaFree(b_gpu));
+    //cudaFree(A_gpu));
+    //cudaFree(Q_gpu));
+    //cudaFree(b_gpu));
     
-    // CHECK(cudaFree(x_bin_buffer_gpu));
-    // CHECK(cudaFree(Ax_b_buffer_gpu));
+    // cudaFree(x_bin_buffer_gpu));
+    // cudaFree(Ax_b_buffer_gpu));
 
-    CHECK(cudaFree(fx_gpu_BF));
-    CHECK(cudaFree(xs_min_gpu_BF));
+    cudaFree(fx_gpu_BF);
+    cudaFree(xs_min_gpu_BF);
 
-    CHECK(cudaFree(fx_gpu_AL));
-    CHECK(cudaFree(xs_min_gpu_AL));
+    cudaFree(fx_gpu_AL);
+    cudaFree(xs_min_gpu_AL);
 
-    CHECK(cudaStreamDestroy(stream_BF));
-    CHECK(cudaStreamDestroy(stream_BF_AL));
+    cudaStreamDestroy(stream_BF);
+    cudaStreamDestroy(stream_BF_AL) ;
 
     // Deallocate
     delete[] Q;
