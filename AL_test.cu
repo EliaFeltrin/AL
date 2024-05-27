@@ -530,7 +530,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     
     fx_Type *true_min_val, *al_min_val;
     CHECK(cudaHostAlloc(&true_min_val, sizeof(fx_Type), cudaHostAllocDefault));
-    CHECK(cudaHostAlloc(&true_min_val, sizeof(fx_Type), cudaHostAllocDefault));
+    CHECK(cudaHostAlloc(&al_min_val, sizeof(fx_Type), cudaHostAllocDefault));
 
     mu_Type mu;
     mu_Type old_mu;
@@ -611,14 +611,9 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         //COPY BACK RESULTS FROM BRUTE FORCE
         x_dec_Type* true_min_x_dec;
         CHECK(cudaHostAlloc(&true_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
-        printf("2\n\n");
         CHECK(cudaMemcpyAsync(true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
-        printf("3\n\n");
         CHECK(cudaMemcpyAsync(true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
-        printf("4\n\n");
 
-        //printf(cudaStreamQuery(stream_BF) == cudaSuccess ? "stream_BF is ready\n" : "stream_BF is not ready\n");
-        //printf("true_min_val = %.1f\n", true_min_val);
         
         
         //PRINTS
@@ -711,8 +706,9 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             CHECK(cudaHostAlloc(&AL_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
             CHECK(cudaMemcpyAsync(al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
             CHECK(cudaMemcpyAsync(AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
-
-
+            
+            //printf(cudaStreamQuery(stream_BF_AL) == cudaSuccess ? "stream_BF is ready\n" : "stream_BF is not ready\n");
+        
 
 
             //STAMPA LAMBDA E MU
