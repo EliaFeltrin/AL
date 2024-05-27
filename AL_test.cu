@@ -751,7 +751,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 for(int i = 0; i < N; i++){
                     printf("%d ", min_x[i]);
                 }
-                printf("]\tmin_val = %.1f\n", al_min_val);
+                printf("]\tmin_val = %.1f\n", *al_min_val);
             }
 
             //UPDATE DI LAMBDA E MU
@@ -790,7 +790,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             for(dim_Type i = 0; i < N; i++){
                 std::cout << expected_min_x[i] << " ";
             }
-            std::cout << "] with value " << true_min_val << std::endl << std::endl;
+            std::cout << "] with value " << *true_min_val << std::endl << std::endl;
         }
 
 
@@ -820,7 +820,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             normalized_error_mean += true_max_val-*true_min_val != 0 ? (current_xQ_prime_x - *true_min_val) / (true_max_val-*true_min_val) : 1;
             //It DOESN'T make sesnse that the error is negative. true_min_val is the minimum feasible value of the function, if AL exits the loop beleiving that a lower minimum (that could exists) fulfils the constraints, there is a problem while checking c(x)
             if(normalized_error_mean < 0){
-                printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, current_xQ_prime_x);
+                printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, *true_min_val, current_xQ_prime_x);
                 print_Q(Q, N);
                 print_A(A, M, N);
                 print_b(b, M);
