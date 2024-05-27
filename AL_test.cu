@@ -515,6 +515,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 {
 
     
+    
     auto start = std::chrono::high_resolution_clock::now();
     const int progressBarWidth = 100;
     srand(time(0));
@@ -556,8 +557,8 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
     // Creating two cuda streams 
     cudaStream_t stream_BF, stream_BF_AL;
-    CHECK(cudaStreamCreate(&stream_BF));
-    CHECK(cudaStreamCreate(&stream_BF_AL));
+    CHECK(cudaStreamCreateWithPriority(&stream_BF, cudaStreamNonBlocking, 1));
+    CHECK(cudaStreamCreateWithPriority(&stream_BF_AL, cudaStreamNonBlocking, 0));
 
     // Allocate GPU memory
     fx_Type*    fx_gpu_BF; // for brute_force
@@ -580,10 +581,10 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
         //fill and transfer Q
         fill_Q(Q, N, lb_Q, ub_Q);
-        CHECK(cudaMemcpyToSymbolAsync(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        CHECK(cudaMemcpyToSymbolAsync(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF));
         //fill and transfer A
         fill_A(A, M, N, one_prob, b_val);
-        CHECK(cudaMemcpyToSymbolAsync(Q_const, Q, Q_len * sizeof(Q_Type), 0, cudaMemcpyHostToDevice, stream_BF));
+        CHECK(cudaMemcpyToSymbolAsync(A_const, A, A_len * sizeof(A_Type), 0, cudaMemcpyHostToDevice, stream_BF));
         //fill and transfer b
         fill_b(b, M, b_val);
         CHECK(cudaMemcpyToSymbolAsync(b_const, b, M * sizeof(b_Type), 0, cudaMemcpyHostToDevice, stream_BF));
@@ -599,7 +600,6 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         brute_force_coarsening<<<blocks_per_grid_bf, threads_per_block_bf, shared_mem_size, stream_BF>>>(N, M, COARSENING, Q_DIAG, fx_gpu_BF, xs_min_gpu_BF);
 	    CHECK_KERNELCALL();
 	    //CHECK(cudaDeviceSynchronize()); ///MAYBE TO REMOVE
-
         int input_size = (int)pow(2, N - COARSENING);
         while(input_size > 1){
             int n_threads_am = min(N_THREADS_ARGMIN, input_size);
@@ -609,18 +609,21 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             reduce_argmin<<<blocks_per_grid_am, threads_per_block_am, 0, stream_BF>>>(fx_gpu_BF, xs_min_gpu_BF);
             CHECK_KERNELCALL();
 	        //CHECK(cudaDeviceSynchronize()); ///MAYBE TO REMOVE
-
             input_size >>= (int)log2(N_THREADS_ARGMIN);
         }
 
         //COPY BACK RESULTS FROM BRUTE FORCE
         unsigned int true_min_x_dec;
+        printf("2\n\n");
         CHECK(cudaMemcpyAsync(&true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
+        printf("3\n\n");
         CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
+        printf("4\n\n");
 
-
+        //printf(cudaStreamQuery(stream_BF) == cudaSuccess ? "stream_BF is ready\n" : "stream_BF is not ready\n");
+        //printf("true_min_val = %.1f\n", true_min_val);
         
-
+        
         //PRINTS
         if(verbose || strong_verbose){
             printf("-------------------------------------------------------------\n");
@@ -646,14 +649,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         //copy all the elements of Q_plus_AT_A to Q_prime  
         for(int i = 0; i < N; i++){
             Q_ATA_diag[i] = Q_prime[triang_index(i,i,N)];
-        }
-        
-
-        
-
-        
-
-        
+        }    
 
 
 
@@ -786,7 +782,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
             al_condition = al_end_condition(attempt, N_AL_ATTEMPTS, N, M, lambda, mu, c);
 
-           
+
         } while (!ok && al_condition);
 
         CHECK(cudaStreamSynchronize(stream_BF));  ///REMOVE OR MOVE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -972,6 +968,9 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
     CHECK(cudaFree(fx_gpu_AL));
     CHECK(cudaFree(xs_min_gpu_AL));
+
+    CHECK(cudaStreamDestroy(stream_BF));
+    CHECK(cudaStreamDestroy(stream_BF_AL));
 
     // Deallocate
     delete[] Q;

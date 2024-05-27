@@ -23,7 +23,7 @@
 /*--------------------------------------- DEFINES ------------------------------------------------- */
 
 #define CUDA_DEVICE_INDEX 0
-#define MAX_N_WITHOUT_COARSENING 29
+#define MAX_N_WITHOUT_COARSENING 28
 
 /*--------------------------------------- GLOBAL VARIABLES ---------------------------------------- */
 
