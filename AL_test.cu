@@ -526,7 +526,11 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
     b_Type* c = new b_Type[M];
 
 
-    fx_Type true_max_val, true_min_val, al_min_val;
+    fx_Type true_max_val;
+    
+    fx_Type *true_min_val, *al_min_val;
+    CHECK(cudaHostAlloc(&true_min_val, sizeof(fx_Type), cudaHostAllocDefault));
+    CHECK(cudaHostAlloc(&true_min_val, sizeof(fx_Type), cudaHostAllocDefault));
 
     mu_Type mu;
     mu_Type old_mu;
@@ -605,11 +609,12 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         }
 
         //COPY BACK RESULTS FROM BRUTE FORCE
-        unsigned int true_min_x_dec;
+        x_dec_Type* true_min_x_dec;
+        CHECK(cudaHostAlloc(&true_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
         printf("2\n\n");
-        CHECK(cudaMemcpyAsync(&true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
+        CHECK(cudaMemcpyAsync(true_min_val, fx_gpu_BF, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF));
         printf("3\n\n");
-        CHECK(cudaMemcpyAsync(&true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
+        CHECK(cudaMemcpyAsync(true_min_x_dec, xs_min_gpu_BF, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF));
         printf("4\n\n");
 
         //printf(cudaStreamQuery(stream_BF) == cudaSuccess ? "stream_BF is ready\n" : "stream_BF is not ready\n");
@@ -702,9 +707,10 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
 
             //COPY BACK RESULTS FROM AL
-            unsigned int AL_min_x_dec;
-            CHECK(cudaMemcpyAsync(&al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
-            CHECK(cudaMemcpyAsync(&AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
+            x_dec_Type *AL_min_x_dec;
+            CHECK(cudaHostAlloc(&AL_min_x_dec, sizeof(x_dec_Type), cudaHostAllocDefault));
+            CHECK(cudaMemcpyAsync(al_min_val, fx_gpu_AL, sizeof(fx_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
+            CHECK(cudaMemcpyAsync(AL_min_x_dec, xs_min_gpu_AL, sizeof(x_dec_Type), cudaMemcpyDeviceToHost, stream_BF_AL));
 
 
 
@@ -726,7 +732,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
             //TRASFORMO x in array binario
             for(int i = 0; i < N; i++){
-                min_x[i] = (AL_min_x_dec >> i) & 1;
+                min_x[i] = (*AL_min_x_dec >> i) & 1;
             }
 
 
@@ -782,7 +788,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         //PRINT DEL MINIMO TROVATO <<<<<<<<<<<<<<<<<<<<<< VA FATTO DOPO CHE BRUTE FORCE HA FINITO
         if(strong_verbose){
             for(int i = 0; i < N; i++){
-                expected_min_x[i] = (true_min_x_dec >> i) & 1;
+                expected_min_x[i] = (*true_min_x_dec >> i) & 1;
             }
             printf("Expected minimum found in x = [ ");
             for(dim_Type i = 0; i < N; i++){
@@ -793,7 +799,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
 
 
         Q_Type current_xQ_prime_x = compute_xQx(Q, min_x, N);
-        correct = al_condition && ok && current_xQ_prime_x == true_min_val;
+        correct = al_condition && ok && current_xQ_prime_x == *true_min_val;
         unfinished = !al_condition;
         if(correct && unfinished){
             printf("ERROR: the same problem is both correct and unfinished\n");
@@ -815,7 +821,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         else if(wrong){                     //AL has chosen the wrong minimum
             if(strong_verbose)
                 printf("PROBLEM SOLVED WRONGLY\n");  
-            normalized_error_mean += true_max_val-true_min_val != 0 ? (current_xQ_prime_x - true_min_val) / (true_max_val-true_min_val) : 1;
+            normalized_error_mean += true_max_val-*true_min_val != 0 ? (current_xQ_prime_x - *true_min_val) / (true_max_val-*true_min_val) : 1;
             //It DOESN'T make sesnse that the error is negative. true_min_val is the minimum feasible value of the function, if AL exits the loop beleiving that a lower minimum (that could exists) fulfils the constraints, there is a problem while checking c(x)
             if(normalized_error_mean < 0){
                 printf("ERROR!\ntrue max val : %.1f\t true min val: %.1f\t xQx: %.1f\n", true_max_val, true_min_val, current_xQ_prime_x);
