@@ -316,7 +316,8 @@ void fill_A_manual_lin(A_Type*  A, const dim_Type M, const dim_Type N, const flo
 
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
-            scanf("%d", &A[j*M + i]);
+            std::cin >> A[i+j*M];
+            //scanf("%d", &A[j*M + i]);
         }
     }
 
@@ -333,7 +334,8 @@ void fill_b_manual_lin(b_Type* b, const dim_Type M, const b_Type unused){
     printf("ENTER B VECTOR\n");
     
     for(dim_Type i = 0; i < M; i++){
-        scanf("%d", &b[i]);
+        std::cin >> b[i];
+        //scanf("%d", &b[i]);
     }
 
     print_b(b, M);
