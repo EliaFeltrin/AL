@@ -451,7 +451,7 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
             //stampa A con il cout facendo in modo che i valori siano allineati (-1 e 0 non sono allineati)
-            std::cout << std::setw(2) << A[i+j*M] << " ";
+            std::cout << std::setw(2) << +A[i+j*M] << " ";
         }
         printf("\n");
     }
@@ -460,7 +460,7 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
 void print_b(const b_Type* b, const dim_Type M){
     printf("b^T = [");
     for(dim_Type i = 0; i < M; i++){
-        std::cout << std::setw(2) << b[i] << " "; 
+        std::cout << std::setw(2) << +b[i] << " "; 
     }
     printf("]\n");
 }
@@ -642,7 +642,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
         if(strong_verbose){
             printf("Expected minimum found in x = [ ");
             for(dim_Type i = 0; i < N; i++){
-                std::cout << expected_min_x[i] << " ";
+                std::cout << +expected_min_x[i] << " ";
             }
             std::cout << "] with value " << true_min_val << std::endl << std::endl;
         }
@@ -749,7 +749,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             if(strong_verbose){
                 printf("c_x_opt^T = [");
                 for(int i = 0; i < M; i++){
-                    std::cout << std::setw(2) << c[i] << " ";
+                    std::cout << std::setw(2) << +c[i] << " ";
                     //std::printf("%.5f ", c[i]);
                 }
                 printf("]\tx_opt = [ ");
@@ -816,7 +816,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
                 print_b(b, M);
                 printf("c = \n");
                 for(int i = 0; i < M; i++){
-                    std::cout << std::setw(2) << c[i] << " ";
+                    std::cout << std::setw(2) << +c[i] << " ";
                     //printf("%.1f ", c[i]);
                 }
                 printf("\n");
@@ -849,7 +849,7 @@ int test_at_dimension_coarsening(   const unsigned int COARSENING,
             if(!strong_verbose){
                 printf("c_x^T =\t\t[");
                 for(int i = 0; i < M; i++){
-                    std::cout << std::setw(2) << c[i] << " ";
+                    std::cout << std::setw(2) << +c[i] << " ";
                     //printf("%.1f\t", c[i]);
                 }
                 printf("]\nlambda^T =\t[\t");
