@@ -385,7 +385,7 @@ void print_A(const A_Type* A, const dim_Type M, const dim_Type N){
     printf("A =\n");
     for(dim_Type i = 0; i < M; i++){
         for(dim_Type j = 0; j < N; j++){
-            std::cout << std::setw(2) << A[i+j*M] << " ";
+            std::cout << std::setw(2) << +A[i+j*M] << " ";
         }
         printf("\n");
     }
@@ -395,7 +395,7 @@ void print_b(const b_Type* b, const dim_Type M){
     printf("b^T = [");
     for(dim_Type i = 0; i < M; i++){
         //printf("%.0f ", b[i]);
-        std::cout << b[i] << " ";
+        std::cout << +b[i] << " ";
     }
     printf("]\n");
 }
@@ -664,7 +664,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             if(strong_verbose){
                 printf("c_x_opt^T = [ ");
                 for(int i = 0; i < M; i++){
-                    std::cout << std::setprecision(5) << c[i] << " ";
+                    std::cout << std::setprecision(5) << +c[i] << " ";
                 }
                 printf("]\tx_opt = [ ");
                 for(int i = 0; i < N; i++){
@@ -730,7 +730,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
                 print_b(b, M);
                 printf("c = \n");
                 for(int i = 0; i < M; i++){
-                    std::cout << std::setprecision(1) << c[i] << " ";
+                    std::cout << std::setprecision(1) << +c[i] << " ";
                 }
                 printf("\n");
                 return 0;
@@ -762,7 +762,7 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
             if(!strong_verbose){
                 printf("c_x^T =\t\t[\t");
                 for(int i = 0; i < M; i++){
-                    std::cout << std::setprecision(5) << c[i] << " ";
+                    std::cout << std::setprecision(5) << +c[i] << " ";
                 }
                 printf("]\nlambda^T =\t[\t");
                 for(int i = 0; i < M; i++){

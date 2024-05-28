@@ -1,6 +1,6 @@
 
 typedef float           Q_Type;
-typedef int8_t          b_Type;                  //non metterlo mai unsigned
+typedef int8_t          b_Type;                 //non metterlo mai unsigned
 typedef int8_t          A_Type;
 typedef float           fx_Type;                //non metterlo mai unsigned
 typedef uint8_t         dim_Type;
