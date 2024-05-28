@@ -60,7 +60,7 @@ if [ $COMMAND == "all" ]; then
     # Compile and profile
     echo "Compiling and executing CUDA program $CUDA_FILE"
     $COMPILER $COMPILER_FLAGS $EXTRA_FLAGS $CUDA_FILE
-    ./exe $EXEC_FLAGS
+    ./exe $EXEC_FLAGS $FIXED_EXEC_FLAGS
     exit 0
 elif [ $COMMAND == "compile" ]; then
     # Compile only
