@@ -1,0 +1,21 @@
+- 3/4 minuti per presentare il problema
+- 3/4 minuti per spiegare come si sisolve il problema (guardando la prima iterazione)
+- 1 minuto circa per ogni iterazione
+
+
+
+
+1. Slide con xQx.... con dimensione matrici e forme
+2. Slide con AL pseudocodice 
+3. Slide con pseudocodice dell'intero progetto
+
+			Presentando ognuna di queste cose mostriamo le prestazioni relative al singolo
+4. Whitout feasible -> Il problema più base possibile con il minor quantitativo possibile di memoria (tutto il globale)
+5. Shared mem -> Ci finiscono Q,A e b in memoria condivisa 
+6. Const mem -> Ci finiscono Q,A e b --> in const perchè sufficiente a fare brute forcing a meno di 64 bit
+7. If-not-mult -> Ci sono particolari istruzioni assembly che fanno direttamete storing con somma abbiamo quindi preferito branch divergence allo svolgere molte moltiplicazioni
+8. Coarsening -> Non migliora un cazzo ma ci serviva per fare N più grandi della memoria VRAM disponibile (a runtime defined) 
+9. Argmin-recursive -> Argmin prima era stupido con atomic ops ora è "ricorsivo" e viene lanciato più volte il kernel (ispirato dai grafi)
+10.main -> Aggiunte le stream per far lavorare (se possibile) >>>>> controllare priority se serve
+
+11. Riassunto globale del miglioramento in performance
