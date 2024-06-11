@@ -2,9 +2,6 @@ virtualenv
 results
 exe
 .vscode/settings.json
-profiled
 
 
-
-test_bit_shift.cpp
-test_bit_shift
+#profiled

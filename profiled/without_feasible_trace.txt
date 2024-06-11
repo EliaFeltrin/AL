@@ -1,0 +1,263 @@
+==14071== NVPROF is profiling process 14071, command: ./exe -mN 20 -MN 20 -mM 3 -MM 3 -a 1000 -i 1 -PCRq 0.3,2,1,2 -c -ml 0 -mu 0.1 -l -r 0.1 -f
+==14071== Profiling application: ./exe -mN 20 -MN 20 -mM 3 -MM 3 -a 1000 -i 1 -PCRq 0.3,2,1,2 -c -ml 0 -mu 0.1 -l -r 0.1 -f
+==14071== Profiling result:
+   Start  Duration            Grid Size      Block Size     Regs*    SSMem*    DSMem*      Size  Throughput  SrcMemType  DstMemType           Device   Context    Stream  Name
+168.55ms  16.092us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetPCIBusId
+204.05ms  2.2170us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetCount
+204.06ms     515ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetCount
+204.64ms  1.3980us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGet
+204.64ms  1.5940us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.65ms     529ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.65ms     581ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.67ms     859ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuModuleGetLoadingMode
+204.73ms     432ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetCount
+204.74ms     327ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGet
+204.74ms  27.215us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetName
+204.77ms  12.139us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceTotalMem
+204.78ms     840ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.78ms     404ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.78ms     459ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.78ms     465ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.78ms     611ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.78ms  74.283us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     548ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     382ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     408ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     374ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     855ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     369ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     365ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.86ms     399ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     403ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     370ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     357ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     391ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     364ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     362ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     406ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.87ms     364ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     366ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     362ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     367ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     368ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     382ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     364ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     421ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     362ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     408ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.88ms     390ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.89ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.90ms     751ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     436ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     372ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     431ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     340ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     370ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     368ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     360ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     410ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     362ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms     406ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+204.91ms  168.47us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.08ms     480ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     467ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     568ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     356ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     406ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     450ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     451ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     524ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     395ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     398ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     356ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     389ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.09ms     398ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     409ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     391ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     397ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     393ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     489ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     405ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     407ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms     399ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.10ms  130.12us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.23ms     478ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.23ms     490ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.23ms     418ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     442ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     401ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     405ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     396ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms  1.6070us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     522ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     402ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     390ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms  1.0250us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.24ms     425ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     696ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     353ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     423ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     390ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     611ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetUuid
+205.25ms     453ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     390ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     392ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms     391ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.25ms  1.2450us                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     463ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     413ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     603ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     425ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     393ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     393ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     505ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     380ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     405ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     393ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.26ms     447ns                    -               -         -         -         -         -           -           -           -                -         -         -  cuDeviceGetAttribute
+205.41ms  275.01ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.42ms  9.9940us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.43ms  5.8980us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.46ms  129.84us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.59ms  8.7970us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.60ms  5.6130us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.61ms  5.4090us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMalloc
+480.72ms  31.579us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+480.74ms     320ns                    -               -         -         -         -       60B  178.81MB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+480.75ms  8.4290us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+480.76ms  5.9710us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+480.76ms     320ns                    -               -         -         -         -      840B  2.4447GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+480.76ms     224ns                    -               -         -         -         -        3B  12.772MB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+480.77ms  262.34us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force(float const *, char const *, char const *, unsigned char, unsigned char, bool, float*) [135])
+481.02ms  7.6445ms           (1024 1 1)      (1024 1 1)        32        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force(float const *, char const *, char const *, unsigned char, unsigned char, bool, float*) [135]
+481.03ms     754ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+481.03ms  7.6447ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+488.68ms  13.910us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [138])
+488.69ms  725.31us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [138]
+488.69ms     318ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+488.69ms  729.44us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+489.42ms  21.905us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+489.44ms     896ns                    -               -         -         -         -        4B  4.2575MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+489.44ms  10.512us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+489.45ms  1.0240us                    -               -         -         -         -        8B  7.4506MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+489.47ms  6.8050us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+489.47ms     288ns                    -               -         -         -         -      840B  2.7164GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+489.47ms  11.399us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [144])
+489.48ms  3.7986ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [144]
+489.49ms     361ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+489.49ms  3.8041ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+493.29ms  9.3980us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [147])
+493.30ms  724.06us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [147]
+493.30ms     308ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+493.30ms  728.68us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+494.03ms  13.209us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+494.04ms     704ns                    -               -         -         -         -        4B  5.4186MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+494.04ms  9.2680us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+494.05ms     800ns                    -               -         -         -         -        8B  9.5367MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+494.06ms  5.5010us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+494.06ms     288ns                    -               -         -         -         -      840B  2.7164GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+494.06ms  9.1000us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [153])
+494.07ms  3.8067ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [153]
+494.07ms     325ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+494.07ms  3.8119ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+497.89ms  9.9090us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [156])
+497.90ms     273ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+497.90ms  722.21us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [156]
+497.90ms  727.25us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+498.62ms  10.299us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+498.63ms     704ns                    -               -         -         -         -        4B  5.4186MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+498.63ms  7.7200us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+498.64ms     800ns                    -               -         -         -         -        8B  9.5367MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+498.64ms  4.3290us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+498.65ms  5.9050us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [162])
+498.65ms     288ns                    -               -         -         -         -      840B  2.7164GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+498.65ms     254ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+498.66ms  3.7833ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [162]
+498.66ms  3.7889ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+502.44ms  5.4960us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [165])
+502.45ms     274ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+502.45ms  728.35us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [165]
+502.45ms  734.17us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+503.19ms  13.236us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+503.19ms     896ns                    -               -         -         -         -        4B  4.2575MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+503.20ms  7.9820us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+503.20ms     800ns                    -               -         -         -         -        8B  9.5367MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+503.21ms  4.9050us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+503.22ms  8.4700us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [171])
+503.22ms     288ns                    -               -         -         -         -      840B  2.7164GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+503.22ms  3.8013ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [171]
+503.22ms     252ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+503.22ms  3.8061ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+507.03ms  5.0830us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [174])
+507.04ms     236ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+507.04ms  729.21us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+507.04ms  723.81us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [174]
+507.77ms  8.7060us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+507.77ms     672ns                    -               -         -         -         -        4B  5.6766MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+507.77ms  7.4010us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+507.78ms     800ns                    -               -         -         -         -        8B  9.5367MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+507.78ms  3.6330us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+507.79ms  5.1450us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [180])
+507.79ms     320ns                    -               -         -         -         -      840B  2.4447GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+507.79ms     235ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+507.79ms  3.7927ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+507.79ms  3.7872ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [180]
+511.59ms  4.7210us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [183])
+511.59ms     216ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+511.59ms  731.70us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+511.59ms  726.30us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [183]
+512.32ms  9.1980us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+512.33ms     672ns                    -               -         -         -         -        4B  5.6766MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+512.33ms  7.4660us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+512.34ms     992ns                    -               -         -         -         -        8B  7.6909MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+512.34ms  3.5040us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+512.35ms  5.2840us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [189])
+512.35ms     288ns                    -               -         -         -         -      840B  2.7164GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+512.35ms     240ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+512.35ms  3.8100ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+512.35ms  3.8045ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [189]
+516.16ms  4.5780us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [192])
+516.17ms     222ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+516.17ms  725.42us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+516.17ms  719.84us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [192]
+516.89ms  8.4600us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+516.90ms     704ns                    -               -         -         -         -        4B  5.4186MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+516.90ms  7.0940us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+516.91ms     800ns                    -               -         -         -         -        8B  9.5367MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+516.91ms  3.4680us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+516.91ms  4.8590us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (brute_force_AL(float const *, unsigned char, float*) [198])
+516.92ms     289ns                    -               -         -         -         -      840B  2.7070GB/s    Pageable      Device  NVIDIA GeForce          1         7  [CUDA memcpy HtoD]
+516.92ms     201ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+516.92ms  3.8073ms                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+516.92ms  3.8019ms           (1024 1 1)      (1024 1 1)        24        0B        0B         -           -           -           -  NVIDIA GeForce          1         7  brute_force_AL(float const *, unsigned char, float*) [198]
+520.73ms  4.0220us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaLaunchKernel (reduce_argmin(float*, float*, unsigned long*) [201])
+520.73ms     211ns                    -               -         -         -         -         -           -           -           -                -         -         -  cudaGetLastError
+520.73ms  732.37us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaDeviceSynchronize
+520.73ms  726.88us           (1024 1 1)      (1024 1 1)        12  12.000KB        0B         -           -           -           -  NVIDIA GeForce          1         7  reduce_argmin(float*, float*, unsigned long*) [201]
+521.47ms  8.1420us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+521.47ms     704ns                    -               -         -         -         -        4B  5.4186MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+521.47ms  6.6760us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaMemcpy
+521.48ms     801ns                    -               -         -         -         -        8B  9.5248MB/s      Device    Pageable  NVIDIA GeForce          1         7  [CUDA memcpy DtoH]
+521.50ms  7.3760us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaFree
+521.50ms  3.6130us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaFree
+521.51ms  3.1810us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaFree
+521.51ms  92.888us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaFree
+521.60ms  5.8280us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaFree
+521.61ms  2.8320us                    -               -         -         -         -         -           -           -           -                -         -         -  cudaFree
+
+Regs: Number of registers used per CUDA thread. This number includes registers used internally by the CUDA driver and/or tools and can be more than what the compiler shows.
+SSMem: Static shared memory allocated per CUDA block.
+DSMem: Dynamic shared memory allocated per CUDA block.
+SrcMemType: The type of source memory accessed by memory operation/copy
+DstMemType: The type of destination memory accessed by memory operation/copy
