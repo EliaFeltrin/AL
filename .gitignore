@@ -8,3 +8,5 @@ profiled/metrics.txt
 !GPU-Roofline-Python/roofline*.png
 
 GPU-Roofline-Python/*/
+
+profiled
