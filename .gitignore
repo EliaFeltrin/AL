@@ -2,7 +2,7 @@ virtualenv
 results
 exe
 .vscode/settings.json
-profiled/metrics.txt
+profiled
 
 
 
