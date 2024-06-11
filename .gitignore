@@ -8,5 +8,5 @@ profiled/metrics.txt
 !GPU-Roofline-Python/roofline*.png
 
 GPU-Roofline-Python/*/
-test_bit_shift.cpp
-test_bit_shift
+
+profiled
