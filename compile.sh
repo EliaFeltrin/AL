@@ -38,7 +38,7 @@ PROFILER_METRICS="--metrics all "
 # -f final stampa solo la media di tutto, senza ti mostra tutte le combinazioni di M e N
 
 
-EXEC_FLAGS="-mN 20 -MN 20 -mM 3 -MM 3 -a 1000 -i 1 -PCRq 0.3,2,1,2 -c"
+EXEC_FLAGS="-mN 20 -MN 20 -mM 3 -MM 3 -a 1000 -i 1000 -PCRq 0.3,2,1,2 -c"
 FIXED_EXEC_FLAGS="-ml 0 -mu 0.1 -l -r 0.1"
 
 # Requested command
