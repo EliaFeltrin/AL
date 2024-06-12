@@ -38,7 +38,7 @@ PROFILER_METRICS="--metrics all "
 # -f final stampa solo la media di tutto, senza ti mostra tutte le combinazioni di M e N
 
 
-EXEC_FLAGS="-mN 20 -MN 20 -mM 3 -MM 3 -a 1000 -i 1 -PCRq 0.3,2,1,2 -c"
+EXEC_FLAGS="-mN 20 -MN 20 -mM 3 -MM 3 -a 1000 -i 100 -PCRq 0.3,2,1,2 -c"
 FIXED_EXEC_FLAGS="-ml 0 -mu 0.1 -l -r 0.1"
 
 # Requested command
@@ -112,6 +112,16 @@ elif [ $COMMAND == "run" ]; then
     echo "Running CUDA program $CUDA_FILE"
     ./exe $EXEC_FLAGS $FIXED_EXEC_FLAGS -f
     exit 0
+elif [ $COMMAND == "time" ]; then
+    # Run only
+    echo "Running CUDA program $CUDA_FILE"
+    $COMPILER $COMPILER_FLAGS $EXTRA_FLAGS $CUDA_FILE
+    time ./exe $EXEC_FLAGS $FIXED_EXEC_FLAGS -f
+    exit 0
+else
+    # Invalid command
+    echo "Invalid command $COMMAND"
+    exit 1
 fi
 
 
