@@ -331,27 +331,27 @@ if __name__ == "__main__":
         "l1":"r",
         "l2":"g",
         "hbm":"b",
-        'brute_force(unsigned char, unsigned char, bool, float*)': 'y',
-        "reduce_argmin(float*, float*, unsigned int*)":'m',
-        "brute_force_AL(unsigned char, float*)":'c',
+        'brute_force_coarsening(unsigned char, unsigned char, unsigned int, bool, float*, unsigned long*)': 'y',
+        "reduce_argmin(float*, unsigned long*)":'m',
+        "brute_force_AL_coarsening(unsigned char, unsigned int, float*, unsigned long*)":'c',
     }
 
     markers = {
         "l1":"s",
         "l2":"s",
         "hbm":"s",
-        'brute_force(unsigned char, unsigned char, bool, float*)': 's',
-        "reduce_argmin(float*, float*, unsigned int*)":'s',
-        "brute_force_AL(unsigned char, float*)":'s',
+        'brute_force_coarsening(unsigned char, unsigned char, unsigned int, bool, float*, unsigned long*)': 's',
+        "reduce_argmin(float*, unsigned long*)":'s',
+        "brute_force_AL_coarsening(unsigned char, unsigned int, float*, unsigned long*)":'s',
     }
 
     labels = {
         "l1":"L1 (tot_inst)",
         "l2":"L2 (tot_inst)",
         "hbm":"HBM (tot_inst)",
-        'brute_force(unsigned char, unsigned char, bool, float*)': "Bruteforce",
-        "reduce_argmin(float*, float*, unsigned int*)": "argmin",
-        "brute_force_AL(unsigned char, float*)": "bruteforceAL",
+        'brute_force_coarsening(unsigned char, unsigned char, unsigned int, bool, float*, unsigned long*)': "Bruteforce",
+        "reduce_argmin(float*, unsigned long*)": "argmin",
+        "brute_force_AL_coarsening(unsigned char, unsigned int, float*, unsigned long*)": "BruteforceAL",
 
     }
 
@@ -373,6 +373,8 @@ if __name__ == "__main__":
     #read from file events_exe.csv the kernel names in column "Kernel" skipping the first 4 lines
     kernelss = pd.read_csv(events, skiprows=4)["Kernel"].to_list()
     kernelss = list(set(kernelss))
+
+    
     
 
     ## Define Memories for ceilings ##
@@ -386,15 +388,15 @@ if __name__ == "__main__":
     memories_plot = [l1, l2, hbm]
 
     ## Define graph elements ##
-    names = ["Brute Force", "Argmin", "Brute Force AL"]
-
-    
+    names = [kernel.split("(")[0] for kernel in kernelss]
+    print(kernelss)
+    print(names)
     
     for name, kernels in zip(names, kernelss):
         print(f"Plotting {name} Kernel: {kernels}")
         
         title = f"Kernel {name} Performance on 1050 ti Mobile"
-        figname = f"roofline_kernels_{name}_{kernel_version}.png"           #CHANGE ACCORDINGLY TO THE VERSION OF THE KERNEL
+        figname = f"{kernel_version}_roofline_kernels_{name}.png"           #CHANGE ACCORDINGLY TO THE VERSION OF THE KERNEL
 
 
         ## Define rooflinemode           ##

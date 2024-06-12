@@ -1,28 +1,28 @@
 Running GPU Benchmarks 
 
-L1 bandwidth = 15.943983 (byte/clk/SM)
-Total Clk number = 263065 
+L1 bandwidth = 15.926063 (byte/clk/SM)
+Total Clk number = 263361 
 
-L2 bandwidth = 2622.134033 (byte/cycle)
-Total Clk number = 1023729 
+L2 bandwidth = 2611.161133 (byte/cycle)
+Total Clk number = 1028031 
 
-Mem BW= 901.189331 (Byte/Clk)
-Mem BW= 96.708304 (GB/sec)
-Total Clk number = 223401 
+Mem BW= 903.944824 (Byte/Clk)
+Mem BW= 97.166840 (GB/sec)
+Total Clk number = 222720 
 
-FLOP per SM = 244.523056 (flop/clk/SM)
-Total Clk number = 34306 
+FLOP per SM = 214.618805 (flop/clk/SM)
+Total Clk number = 3817 
 
 Final Measurements After Calculations
 
-L1 bandwidth = 1904.349329 (GB/sec)
-L2 bandwidth = 3914.846111 (GB/sec)
-HBM bandwidth =  96.708304  (GB/sec)
-Max Flops = 29205.833808 (GFLOPS)
+L1 bandwidth = 2256.404605 (GB/sec)
+L2 bandwidth = 4624.366366 (GB/sec)
+HBM bandwidth =  97.166840  (GB/sec)
+Max Flops = 30407.192292 (GFLOPS)
 
 Measurements normalized to 32B transaction size
 
-L1 bandwidth = 59.510916 (GTXN/s)
-L2 bandwidth = 122.338940 (GTXN/s)
-HBM bandwidth = 3.022134 (GTXN/s)
-Max warp-based Instructions = 912.682306 (GIPS)
+L1 bandwidth = 70.512643 (GTXN/s)
+L2 bandwidth = 144.511448 (GTXN/s)
+HBM bandwidth = 3.036463 (GTXN/s)
+Max warp-based Instructions = 950.224759 (GIPS)
