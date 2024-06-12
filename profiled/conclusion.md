@@ -1,61 +1,87 @@
-### Report di Profilazione dei Kernel without feasible
 
-#### Punti Positivi
+### Analisi dei Migliori Approcci per l'Ottimizzazione dei Kernel without feasible
 
-1. **Utilizzo di Registri**
+#### 1. **Ottimizzazione della Cache**
 
-   - I kernel utilizzano un numero moderato di registri per thread. Questo è importante per mantenere il parallelismo elevato e ridurre i conflitti di risorse.
-2. **Allocazione di Memoria Condivisa**
+**Cache Globale**
 
-   - L'allocazione di memoria condivisa per blocco CUDA sembra ottimizzata, con un uso statico della memoria condivisa. Ciò può migliorare le prestazioni riducendo il tempo di accesso ai dati rispetto alla memoria globale.
-3. **Utilizzo della Memoria**
+- **Problema**: Hit rate globale nella cache unificata è 0%.
+- **Soluzione**: Implementare tecniche di prefetching per migliorare l'accesso alla cache. Utilizzare la cache in modo più efficiente riducendo i conflitti di cache e migliorando la località spaziale e temporale dei dati.
 
-   - Le operazioni di copia di memoria (`cudaMemcpy`) hanno throughput elevati, specialmente per le piccole quantità di dati. Questo indica che le operazioni di memoria sono generalmente efficienti.
-4. **Sincronizzazione e Errori CUDA**
+**Cache L2**
 
-   - Le chiamate a `cudaDeviceSynchronize` e `cudaGetLastError` sono utilizzate regolarmente per garantire che gli errori vengano catturati e gestiti tempestivamente.
+- **Problema**: Hit rate per le letture di texture nella cache L2 è 0%.
+- **Soluzione**: Ottimizzare l'uso della cache L2 per le operazioni di lettura di texture, assicurandosi che i dati siano presenti nella cache L2 quando necessario.
 
-#### Aree di Miglioramento
+#### 2. **Utilizzo della Memoria Condivisa**
 
-1. **Durata delle Operazioni di Copia di Memoria**
+**Efficienza della Memoria Condivisa**
 
-   - Anche se il throughput è elevato, alcune operazioni di copia di memoria (`cudaMemcpy`) mostrano tempi di durata che possono essere ottimizzati ulteriormente. Ridurre la latenza di queste operazioni può migliorare le prestazioni complessive.
-2. **Durata delle Chiamate ai Kernel**
+- **Problema**: Efficienza della memoria condivisa è intorno al 20.54%.
+- **Soluzione**: Ridurre i conflitti bancari nella memoria condivisa e utilizzare tecniche di accesso coalescente per migliorare l'efficienza. Aumentare l'uso della memoria condivisa per le operazioni di accesso frequente.
 
-   - Alcune chiamate ai kernel, come `brute_force` e `reduce_argmin`, mostrano durate significative. Ottimizzare il codice all'interno di questi kernel può ridurre il tempo complessivo di esecuzione.
-3. **Utilizzo di Memoria Dinamica**
+**Transazioni di Memoria Condivisa**
 
-   - La mancanza di utilizzo di memoria dinamica (DSMem) potrebbe indicare un'opportunità per ottimizzare ulteriormente l'allocazione di memoria per adattarsi meglio alle esigenze dei kernel.
-4. **Profilazione delle Funzioni di Inizializzazione**
+- **Positivo**: Valore di 1.0 per le transazioni di caricamento e store per richiesta.
+- **Soluzione**: Mantenere questa efficienza ottimizzando ulteriormente il pattern di accesso alla memoria condivisa.
 
-   - Molto tempo è speso nelle funzioni di inizializzazione CUDA come `cuDeviceGetAttribute` e `cudaMalloc`. Considerare l'inizializzazione asincrona o la riduzione delle chiamate ripetute può migliorare le prestazioni.
-5. **Ottimizzazione della Convergenza dei Thread**
+#### 3. **Riduzione delle Dipendenze di Esecuzione**
 
-   - Verificare la convergenza dei thread all'interno dei kernel per evitare la diversione dei percorsi e migliorare l'efficienza del warp. Utilizzare tecniche di programmazione CUDA avanzate per minimizzare la divergenza dei thread.
-6. **Uso della Memoria Condivisa**
+**Problema**: Alta percentuale di stallo dovuta a dipendenze di esecuzione (circa 62.70%).
 
-   - Esplorare la possibilità di utilizzare più memoria condivisa per ridurre ulteriormente il tempo di accesso alla memoria globale. Questo può essere particolarmente utile per kernel computazionalmente intensivi come `brute_force`.
+- **Soluzione**: Ottimizzare il codice del kernel per ridurre le dipendenze di esecuzione tra le istruzioni. Utilizzare tecniche di pipelining per eseguire operazioni indipendenti in parallelo.
 
-#### Raccomandazioni
+#### 4. **Utilizzo della Memoria Locale**
 
-1. **Profilazione Dettagliata**
+**Efficienza della Memoria Locale**
 
-   - Utilizzare strumenti di profilazione più dettagliati come Nsight Compute per ottenere informazioni granulari sulle prestazioni dei singoli kernel e individuare colli di bottiglia specifici.
-2. **Ottimizzazione della Memoria**
+- **Problema**: Utilizzo della memoria locale con alto sovraccarico (95.81%).
+- **Soluzione**: Minimizzare l'uso della memoria locale ottimizzando l'accesso ai dati e sfruttando maggiormente la memoria condivisa e la cache.
 
-   - Esaminare l'uso della memoria e ottimizzare l'allocazione e l'accesso. Considerare l'utilizzo di tecniche avanzate di gestione della memoria come la coalescenza della memoria e l'uso della memoria texture.
-3. **Analisi del Codice Kernel**
+#### 5. **Throughput della Memoria**
 
-   - Rivedere il codice all'interno dei kernel per identificare e rimuovere eventuali operazioni ridondanti o non necessarie. Ottimizzare i cicli e le operazioni aritmetiche per migliorare l'efficienza computazionale.
-4. **Bilanciamento del Carico**
+**Global Store Throughput**
 
-   - Assicurarsi che il carico di lavoro sia equamente distribuito tra i blocchi e i thread CUDA per evitare squilibri che possono causare inefficienze.
+- **Positivo**: Throughput costante di 4.1482GB/s per le scritture globali.
+- **Soluzione**: Continuare a mantenere un alto throughput ottimizzando ulteriormente il pattern di accesso alla memoria globale.
+
+**Local Memory Throughput**
+
+- **Positivo**: Throughput molto elevato per il carico di memoria locale (515.42GB/s).
+- **Soluzione**: Mantenere l'alto throughput e minimizzare i conflitti di accesso alla memoria locale.
+
+#### 6. **Ottimizzazione delle Operazioni Flottanti**
+
+**Floating Point Operations**
+
+- **Positivo**: Alta quantità di istruzioni floating-point in singola precisione.
+- **Soluzione**: Continuare a ottimizzare l'uso delle operazioni floating-point per migliorare l'efficienza computazionale.
+
+#### 7. **Riduzione dei Conflitti Bancari**
+
+**Conflitti di Memoria Condivisa**
+
+- **Problema**: Conflitti di caricamento e store nella memoria condivisa.
+- **Soluzione**: Ottimizzare l'accesso alla memoria condivisa per ridurre i conflitti bancari. Utilizzare tecniche di accesso coalescente per migliorare l'efficienza.
+
+### Approcci Combinati per l'Ottimizzazione
+
+1. **Ottimizzazione Integrata della Cache e della Memoria Condivisa**
+
+   - Implementare tecniche di prefetching e di coalescenza per ridurre i conflitti di cache e migliorare l'efficienza della memoria condivisa.
+   - Sfruttare al meglio la memoria condivisa per le operazioni di accesso frequente, riducendo al contempo l'uso della memoria locale.
+2. **Riduzione delle Dipendenze e Pipelining**
+
+   - Analizzare il codice del kernel per individuare le dipendenze di esecuzione e utilizzare il pipelining per eseguire operazioni indipendenti in parallelo.
+   - Ottimizzare il flusso delle istruzioni per ridurre i colli di bottiglia e migliorare l'efficienza complessiva.
+3. **Bilanciamento del Carico di Memoria**
+
+   - Mantenere un alto throughput di memoria globale e locale ottimizzando il pattern di accesso ai dati.
+   - Minimizzare i conflitti di accesso e sfruttare le tecniche di caching avanzate per migliorare il throughput complessivo.
 
 ### Conclusione
 
-Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi.
-
-
+Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate. Implementare le raccomandazioni e gli approcci combinati sopra elencati può aiutare a raggiungere una maggiore efficienza, ridurre i tempi di esecuzione e migliorare le prestazioni complessive dei kernel.
 
 ### Report di Profilazione dei Kernel shared_mem
 
@@ -138,7 +164,6 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 
 Le prestazioni dei kernel profilati mostrano un buon livello di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
 
-
 ### Report di Profilazione dei Kernel no_mult
 
 ### Punti Positivi
@@ -214,8 +239,6 @@ Le prestazioni dei kernel profilati mostrano un buon livello di ottimizzazione, 
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
 
-
-
 ### Report di Profilazione dei Kernel main
 
 #### Punti Positivi
@@ -289,8 +312,6 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 ### Conclusione
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
-
-
 
 ### Report di Profilazione dei Kernel const_mem
 
@@ -366,8 +387,6 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
 
-
-
 ### Report di Profilazione dei Kernel coarsening
 
 #### Punti Positivi
@@ -437,8 +456,6 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 ### Conclusione
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
-
-
 
 ### Report di Profilazione dei Kernel argmin_rec
 
