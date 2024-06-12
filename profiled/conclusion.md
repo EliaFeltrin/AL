@@ -1,5 +1,5 @@
 
-### Analisi dei Migliori Approcci per l'Ottimizzazione dei Kernel without feasible
+## 1. Analisi dei Migliori Approcci per l'Ottimizzazione dei Kernel without feasible
 
 #### 1. **Ottimizzazione della Cache**
 
@@ -83,7 +83,7 @@
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate. Implementare le raccomandazioni e gli approcci combinati sopra elencati può aiutare a raggiungere una maggiore efficienza, ridurre i tempi di esecuzione e migliorare le prestazioni complessive dei kernel.
 
-### Report di Profilazione dei Kernel shared_mem
+## 2. Report di Profilazione dei Kernel shared_mem
 
 #### Punti Positivi
 
@@ -164,7 +164,82 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 
 Le prestazioni dei kernel profilati mostrano un buon livello di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
 
-### Report di Profilazione dei Kernel no_mult
+
+## 3. Report di Profilazione dei Kernel const_mem
+
+### Punti Positivi
+
+1. **Efficienza delle Istruzioni**
+
+   - **Inst_per_warp**: Alta densità di istruzioni per warp con un valore di circa 2909,3.
+   - **Branch Efficiency**: Efficienza dei rami al 100%, il che indica un uso ottimale delle istruzioni condizionali.
+   - **Warp Execution Efficiency**: Buona efficienza (88.19%).
+   - **Warp Non-Predicated Execution Efficiency**: Buona efficienza (83.30%).
+2. **Utilizzo della Cache**
+
+   - **Tex Cache Hit Rate**: Alta percentuale di hit rate (80.29%), il che indica un uso efficiente della cache unificata.
+   - **L2 Tex Read Hit Rate**: Hit rate molto elevato per le letture di texture (99.80%).
+   - **L2 Tex Write Hit Rate**: Hit rate molto elevato per le scritture di texture (98.23%).
+   - **L2 Read Throughput**: Throughput costante di 65.164GB/s per le letture nella cache L2.
+   - **L2 Write Throughput**: Throughput elevato di 78.965GB/s per le scritture nella cache L2.
+3. **Efficienza del Carico e dello Store Globale**
+
+   - **Global Store Transactions Per Request**: Alta efficienza con un valore di 4,0.
+   - **Global Store Throughput**: Throughput costante di 1.2634GB/s.
+   - **Gst Efficiency**: Efficienza degli store globali al 100%.
+4. **Utilizzo della Memoria Locale**
+
+   - **Local Load Transactions Per Request**: Alta efficienza con un valore di 7.601358.
+   - **Local Store Transactions Per Request**: Efficienza elevata con un valore di 4,0.
+   - **Local Load Throughput**: Throughput molto elevato (574.43GB/s).
+   - **Local Store Throughput**: Throughput elevato (77.701GB/s).
+   - **Local Hit Rate**: Alta efficienza con un hit rate dell'88.61%.
+5. **Prestazioni della Memoria e delle Operazioni Flottanti**
+
+   - **FP Instructions (Single)**: Alta quantità di istruzioni floating-point in singola precisione (310625280).
+   - **FP Operations (Single Precision FMA)**: Numero elevato di operazioni FMA (155312640).
+   - **SM Efficiency**: Alta efficienza dei multiprocessori (99.27%).
+   - **Achieved Occupancy**: Alta occupazione raggiunta (0.805547).
+
+#### Aree di Miglioramento
+
+1. **Efficienza della Cache e delle Transazioni**
+
+   - **Global Hit Rate**: Hit rate globale nella cache unificata è 0%, suggerendo inefficienze significative nell'uso della cache.
+   - **Sysmem Write Throughput**: Throughput molto basso (50.536KB/s), indicando un uso inefficiente della memoria di sistema per le operazioni di scrittura.
+2. **Motivi di Stallo**
+
+   - **Stall Memory Dependency**: Alta percentuale di stallo dovuta a dipendenze di memoria (41.07%).
+   - **Stall Other**: Percentuale di stallo dovuta a motivi "altri" (26.26%), suggerendo aree non ottimizzate nel codice del kernel.
+3. **Efficienza della Memoria Condivisa**
+
+   - **Shared Memory Efficiency**: Efficienza della memoria condivisa è 0%, indicando che non viene utilizzata o non è ottimizzata.
+4. **Efficienza del Carico e dello Store Globale**
+
+   - **Gld Efficiency**: Efficienza dei carichi globali è 0%, suggerendo che nessuna richiesta di carico globale è stata soddisfatta efficientemente.
+   - **Global Load Transactions**: Numero di transazioni di carico globale è molto basso (2), indicando possibili inefficienze.
+
+#### Raccomandazioni
+
+1. **Ottimizzazione della Cache**
+
+   - Migliorare il hit rate della cache globale attraverso tecniche di ottimizzazione come il prefetching e l'uso efficace della cache unificata.
+   - Ottimizzare le operazioni di scrittura in memoria di sistema per migliorare il throughput.
+2. **Analisi delle Cause di Stallo**
+
+   - Esaminare i motivi di stallo specifici, specialmente quelli etichettati come "altri" e "memory dependency", e implementare strategie per ridurre questi stalli.
+3. **Ottimizzazione della Memoria Condivisa**
+
+   - Utilizzare e ottimizzare la memoria condivisa per migliorare l'efficienza complessiva del kernel.
+4. **Efficienza delle Transazioni e del Throughput**
+
+   - Ottimizzare ulteriormente le transazioni di memoria globale per ridurre il sovraccarico e migliorare l'efficienza dei carichi globali.
+
+### Conclusione
+
+Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
+
+## 4. Report di Profilazione dei Kernel no_mult
 
 ### Punti Positivi
 
@@ -239,155 +314,8 @@ Le prestazioni dei kernel profilati mostrano un buon livello di ottimizzazione, 
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
 
-### Report di Profilazione dei Kernel main
 
-#### Punti Positivi
-
-1. **Efficienza delle Istruzioni**
-
-   - **Inst_per_warp**: Alta densità di istruzioni per warp con un valore di circa 2731,4.
-   - **Branch Efficiency**: Efficienza dei rami elevata (98.36%), indicativa di un buon uso delle istruzioni condizionali.
-   - **Warp Execution Efficiency**: Buona efficienza (71.06%), con un miglioramento rispetto ai dati precedenti.
-   - **Warp Non-Predicated Execution Efficiency**: Buona efficienza (65.10%).
-2. **Utilizzo della Memoria Condivisa**
-
-   - **Shared Memory Load Transactions Per Request**: Valore di 1,0, indicante efficienza nelle transazioni di caricamento della memoria condivisa.
-   - **Shared Memory Store Transactions Per Request**: Valore di 1,0, indicante efficienza nelle transazioni di store della memoria condivisa.
-   - **Shared Efficiency**: Efficienza della memoria condivisa al 20.54%.
-3. **Efficienza del Carico e dello Store Globale**
-
-   - **Global Store Transactions Per Request**: Alta efficienza con un valore di 6,0.
-   - **Global Store Throughput**: Throughput costante di 4.1240GB/s.
-   - **Gst Efficiency**: Efficienza degli store globali al 100%.
-4. **Prestazioni della Cache e della Memoria**
-
-   - **L2 Write Throughput**: Throughput costante di 4.1241GB/s per le scritture nella cache L2.
-   - **Shared Load Throughput**: Throughput elevato (55.673GB/s).
-   - **Shared Store Throughput**: Throughput elevato (59.797GB/s).
-
-#### Aree di Miglioramento
-
-1. **Efficienza della Cache e delle Transazioni**
-
-   - **Global Hit Rate**: Hit rate globale nella cache unificata è 0%, suggerendo inefficienze significative nell'uso della cache.
-   - **Local Hit Rate**: Hit rate della memoria locale è 0%, indicando che non ci sono hit nella memoria locale.
-   - **L2 Tex Read Hit Rate**: Hit rate per le letture di texture nella cache L2 è 0%, suggerendo inefficienze.
-2. **Utilizzo della Memoria di Sistema**
-
-   - **Sysmem Read/Write Transactions**: Transazioni di lettura/scrittura in memoria di sistema sono trascurabili o nulle, suggerendo che il programma potrebbe non sfruttare appieno la memoria di sistema disponibile.
-   - **Sysmem Write Throughput**: Throughput molto basso (54.985KB/s), indicando un uso inefficiente della memoria di sistema per le operazioni di scrittura.
-3. **Motivi di Stallo**
-
-   - **Stall Exec Dependency**: Percentuale di stallo dovuta a dipendenze di esecuzione alta (62.52%).
-   - **Stall Other**: Percentuale di stallo dovuta a motivi "altri" (15.80%), suggerendo aree non ottimizzate nel codice del kernel.
-4. **Efficienza del Carico e dello Store Globale**
-
-   - **Gld Efficiency**: Efficienza dei carichi globali è 0%, suggerendo che nessuna richiesta di carico globale è stata soddisfatta efficientemente.
-   - **Global Load Transactions**: Numero di transazioni di carico globale è molto basso (2), indicando possibili inefficienze.
-5. **Efficienza del Kernel e Ottimizzazione del Codice**
-
-   - **Shared Memory Efficiency**: Efficienza della memoria condivisa è al 20.54%, indicando spazio per migliorare l'uso della memoria condivisa.
-   - **Divergent Branch**: Numero significativo di rami divergenti (141664 per `brute_force_coarsening`).
-
-#### Raccomandazioni
-
-1. **Ottimizzazione della Cache**
-
-   - Migliorare il hit rate della cache globale e locale attraverso tecniche di ottimizzazione come il prefetching e l'uso efficace della cache unificata.
-   - Ridurre il numero di transazioni di memoria locale e migliorare l'efficienza delle transazioni di caricamento globale.
-2. **Utilizzo della Memoria di Sistema**
-
-   - Investigare l'uso della memoria di sistema e ottimizzare le transazioni di lettura/scrittura per migliorare l'efficienza complessiva.
-3. **Analisi delle Cause di Stallo**
-
-   - Esaminare i motivi di stallo specifici, specialmente quelli etichettati come "altri", e implementare strategie per ridurre questi stalli.
-4. **Ottimizzazione del Codice Kernel**
-
-   - Ridurre i rami divergenti all'interno dei kernel `brute_force_coarsening` e `reduce_argmin`.
-   - Migliorare l'efficienza della memoria condivisa attraverso tecniche di riduzione dei conflitti bancari.
-5. **Efficienza delle Transazioni e del Throughput**
-
-   - Ottimizzare ulteriormente le transazioni di memoria condivisa e locale per ridurre il sovraccarico della memoria locale e migliorare il throughput complessivo.
-
-### Conclusione
-
-Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
-
-### Report di Profilazione dei Kernel const_mem
-
-### Punti Positivi
-
-1. **Efficienza delle Istruzioni**
-
-   - **Inst_per_warp**: Alta densità di istruzioni per warp con un valore di circa 2909,3.
-   - **Branch Efficiency**: Efficienza dei rami al 100%, il che indica un uso ottimale delle istruzioni condizionali.
-   - **Warp Execution Efficiency**: Buona efficienza (88.19%).
-   - **Warp Non-Predicated Execution Efficiency**: Buona efficienza (83.30%).
-2. **Utilizzo della Cache**
-
-   - **Tex Cache Hit Rate**: Alta percentuale di hit rate (80.29%), il che indica un uso efficiente della cache unificata.
-   - **L2 Tex Read Hit Rate**: Hit rate molto elevato per le letture di texture (99.80%).
-   - **L2 Tex Write Hit Rate**: Hit rate molto elevato per le scritture di texture (98.23%).
-   - **L2 Read Throughput**: Throughput costante di 65.164GB/s per le letture nella cache L2.
-   - **L2 Write Throughput**: Throughput elevato di 78.965GB/s per le scritture nella cache L2.
-3. **Efficienza del Carico e dello Store Globale**
-
-   - **Global Store Transactions Per Request**: Alta efficienza con un valore di 4,0.
-   - **Global Store Throughput**: Throughput costante di 1.2634GB/s.
-   - **Gst Efficiency**: Efficienza degli store globali al 100%.
-4. **Utilizzo della Memoria Locale**
-
-   - **Local Load Transactions Per Request**: Alta efficienza con un valore di 7.601358.
-   - **Local Store Transactions Per Request**: Efficienza elevata con un valore di 4,0.
-   - **Local Load Throughput**: Throughput molto elevato (574.43GB/s).
-   - **Local Store Throughput**: Throughput elevato (77.701GB/s).
-   - **Local Hit Rate**: Alta efficienza con un hit rate dell'88.61%.
-5. **Prestazioni della Memoria e delle Operazioni Flottanti**
-
-   - **FP Instructions (Single)**: Alta quantità di istruzioni floating-point in singola precisione (310625280).
-   - **FP Operations (Single Precision FMA)**: Numero elevato di operazioni FMA (155312640).
-   - **SM Efficiency**: Alta efficienza dei multiprocessori (99.27%).
-   - **Achieved Occupancy**: Alta occupazione raggiunta (0.805547).
-
-#### Aree di Miglioramento
-
-1. **Efficienza della Cache e delle Transazioni**
-
-   - **Global Hit Rate**: Hit rate globale nella cache unificata è 0%, suggerendo inefficienze significative nell'uso della cache.
-   - **Sysmem Write Throughput**: Throughput molto basso (50.536KB/s), indicando un uso inefficiente della memoria di sistema per le operazioni di scrittura.
-2. **Motivi di Stallo**
-
-   - **Stall Memory Dependency**: Alta percentuale di stallo dovuta a dipendenze di memoria (41.07%).
-   - **Stall Other**: Percentuale di stallo dovuta a motivi "altri" (26.26%), suggerendo aree non ottimizzate nel codice del kernel.
-3. **Efficienza della Memoria Condivisa**
-
-   - **Shared Memory Efficiency**: Efficienza della memoria condivisa è 0%, indicando che non viene utilizzata o non è ottimizzata.
-4. **Efficienza del Carico e dello Store Globale**
-
-   - **Gld Efficiency**: Efficienza dei carichi globali è 0%, suggerendo che nessuna richiesta di carico globale è stata soddisfatta efficientemente.
-   - **Global Load Transactions**: Numero di transazioni di carico globale è molto basso (2), indicando possibili inefficienze.
-
-#### Raccomandazioni
-
-1. **Ottimizzazione della Cache**
-
-   - Migliorare il hit rate della cache globale attraverso tecniche di ottimizzazione come il prefetching e l'uso efficace della cache unificata.
-   - Ottimizzare le operazioni di scrittura in memoria di sistema per migliorare il throughput.
-2. **Analisi delle Cause di Stallo**
-
-   - Esaminare i motivi di stallo specifici, specialmente quelli etichettati come "altri" e "memory dependency", e implementare strategie per ridurre questi stalli.
-3. **Ottimizzazione della Memoria Condivisa**
-
-   - Utilizzare e ottimizzare la memoria condivisa per migliorare l'efficienza complessiva del kernel.
-4. **Efficienza delle Transazioni e del Throughput**
-
-   - Ottimizzare ulteriormente le transazioni di memoria globale per ridurre il sovraccarico e migliorare l'efficienza dei carichi globali.
-
-### Conclusione
-
-Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono ancora diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
-
-### Report di Profilazione dei Kernel coarsening
+## 5. Report di Profilazione dei Kernel coarsening
 
 #### Punti Positivi
 
@@ -457,7 +385,7 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 
 Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
 
-### Report di Profilazione dei Kernel argmin_rec
+## 6. Report di Profilazione dei Kernel argmin_rec
 
 #### Punti Positivi
 
@@ -524,6 +452,81 @@ Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, m
 4. **Efficienza delle Transazioni e del Throughput**
 
    - Ottimizzare ulteriormente le transazioni di memoria globale per ridurre il sovraccarico e migliorare l'efficienza dei carichi globali.
+
+### Conclusione
+
+Le prestazioni dei kernel profilati mostrano una buona base di ottimizzazione, ma ci sono diverse aree che possono essere migliorate per ottenere una maggiore efficienza e ridurre i tempi di esecuzione complessivi. Implementare le raccomandazioni sopra elencate può aiutare a raggiungere questi obiettivi, migliorando ulteriormente l'efficienza delle operazioni di memoria, riducendo i conflitti e ottimizzando l'uso della memoria di sistema.
+
+
+## 7. Report di Profilazione dei Kernel main
+
+#### Punti Positivi
+
+1. **Efficienza delle Istruzioni**
+
+   - **Inst_per_warp**: Alta densità di istruzioni per warp con un valore di circa 2731,4.
+   - **Branch Efficiency**: Efficienza dei rami elevata (98.36%), indicativa di un buon uso delle istruzioni condizionali.
+   - **Warp Execution Efficiency**: Buona efficienza (71.06%), con un miglioramento rispetto ai dati precedenti.
+   - **Warp Non-Predicated Execution Efficiency**: Buona efficienza (65.10%).
+2. **Utilizzo della Memoria Condivisa**
+
+   - **Shared Memory Load Transactions Per Request**: Valore di 1,0, indicante efficienza nelle transazioni di caricamento della memoria condivisa.
+   - **Shared Memory Store Transactions Per Request**: Valore di 1,0, indicante efficienza nelle transazioni di store della memoria condivisa.
+   - **Shared Efficiency**: Efficienza della memoria condivisa al 20.54%.
+3. **Efficienza del Carico e dello Store Globale**
+
+   - **Global Store Transactions Per Request**: Alta efficienza con un valore di 6,0.
+   - **Global Store Throughput**: Throughput costante di 4.1240GB/s.
+   - **Gst Efficiency**: Efficienza degli store globali al 100%.
+4. **Prestazioni della Cache e della Memoria**
+
+   - **L2 Write Throughput**: Throughput costante di 4.1241GB/s per le scritture nella cache L2.
+   - **Shared Load Throughput**: Throughput elevato (55.673GB/s).
+   - **Shared Store Throughput**: Throughput elevato (59.797GB/s).
+
+#### Aree di Miglioramento
+
+1. **Efficienza della Cache e delle Transazioni**
+
+   - **Global Hit Rate**: Hit rate globale nella cache unificata è 0%, suggerendo inefficienze significative nell'uso della cache.
+   - **Local Hit Rate**: Hit rate della memoria locale è 0%, indicando che non ci sono hit nella memoria locale.
+   - **L2 Tex Read Hit Rate**: Hit rate per le letture di texture nella cache L2 è 0%, suggerendo inefficienze.
+2. **Utilizzo della Memoria di Sistema**
+
+   - **Sysmem Read/Write Transactions**: Transazioni di lettura/scrittura in memoria di sistema sono trascurabili o nulle, suggerendo che il programma potrebbe non sfruttare appieno la memoria di sistema disponibile.
+   - **Sysmem Write Throughput**: Throughput molto basso (54.985KB/s), indicando un uso inefficiente della memoria di sistema per le operazioni di scrittura.
+3. **Motivi di Stallo**
+
+   - **Stall Exec Dependency**: Percentuale di stallo dovuta a dipendenze di esecuzione alta (62.52%).
+   - **Stall Other**: Percentuale di stallo dovuta a motivi "altri" (15.80%), suggerendo aree non ottimizzate nel codice del kernel.
+4. **Efficienza del Carico e dello Store Globale**
+
+   - **Gld Efficiency**: Efficienza dei carichi globali è 0%, suggerendo che nessuna richiesta di carico globale è stata soddisfatta efficientemente.
+   - **Global Load Transactions**: Numero di transazioni di carico globale è molto basso (2), indicando possibili inefficienze.
+5. **Efficienza del Kernel e Ottimizzazione del Codice**
+
+   - **Shared Memory Efficiency**: Efficienza della memoria condivisa è al 20.54%, indicando spazio per migliorare l'uso della memoria condivisa.
+   - **Divergent Branch**: Numero significativo di rami divergenti (141664 per `brute_force_coarsening`).
+
+#### Raccomandazioni
+
+1. **Ottimizzazione della Cache**
+
+   - Migliorare il hit rate della cache globale e locale attraverso tecniche di ottimizzazione come il prefetching e l'uso efficace della cache unificata.
+   - Ridurre il numero di transazioni di memoria locale e migliorare l'efficienza delle transazioni di caricamento globale.
+2. **Utilizzo della Memoria di Sistema**
+
+   - Investigare l'uso della memoria di sistema e ottimizzare le transazioni di lettura/scrittura per migliorare l'efficienza complessiva.
+3. **Analisi delle Cause di Stallo**
+
+   - Esaminare i motivi di stallo specifici, specialmente quelli etichettati come "altri", e implementare strategie per ridurre questi stalli.
+4. **Ottimizzazione del Codice Kernel**
+
+   - Ridurre i rami divergenti all'interno dei kernel `brute_force_coarsening` e `reduce_argmin`.
+   - Migliorare l'efficienza della memoria condivisa attraverso tecniche di riduzione dei conflitti bancari.
+5. **Efficienza delle Transazioni e del Throughput**
+
+   - Ottimizzare ulteriormente le transazioni di memoria condivisa e locale per ridurre il sovraccarico della memoria locale e migliorare il throughput complessivo.
 
 ### Conclusione
 
