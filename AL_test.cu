@@ -581,8 +581,14 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
         bool ok;
         bool al_condition;
         
-        Q_Type Q_plus_AT_A[N*(N+1)/2];
-        compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_plus_AT_A, M, N);
+        Q_Type Q_prime[N*(N+1)/2];
+        compute_Q_plus_AT_A_upper_triangular_lin(Q, A, Q_prime, M, N);
+        //copy all elements of Q_prime's diagonal
+        Q_Type Q_ATA_diag[N];
+        for(dim_Type i = 0; i < N; i++){
+            Q_ATA_diag[i] = Q_prime[triang_index(i,i,N)];
+        }
+
         do{
 
             if(strong_verbose){
@@ -614,13 +620,13 @@ int test_at_dimension(  dim_Type N, dim_Type M, int MAXITER, int N_AL_ATTEMPTS, 
 
             //calcolo Q'
             for(dim_Type i = 0; i < N; i++){
-                Q_plus_AT_A[triang_index(i,i,N)] += lambda_mu_b_A[i]; 
+                Q_prime[triang_index(i,i,N)] = Q_ATA_diag[i] + lambda_mu_b_A[i]; 
             }
 
             
 
             //copy Q_plus_AT_A to GPU
-            CHECK(cudaMemcpyToSymbol(Q_const, Q_plus_AT_A, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
+            CHECK(cudaMemcpyToSymbol(Q_const, Q_prime, N*(N+1)/2 * sizeof(Q_Type), 0, cudaMemcpyHostToDevice));
 
             brute_force_AL<<<blocks_per_grid, threads_per_block>>>(N, fx_gpu, xs_min_gpu);
             CHECK_KERNELCALL();
