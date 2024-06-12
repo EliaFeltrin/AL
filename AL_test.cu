@@ -26,7 +26,7 @@
 #include "types.h"
 #include "kernels.cu"
 
-//#define DEBUG
+#define DEBUG
  
 #ifndef DEBUG
     #define RAND_GEN_INIT std::random_device rd; std::mt19937 g(rd());
